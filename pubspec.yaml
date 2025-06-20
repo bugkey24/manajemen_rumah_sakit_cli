@@ -1,5 +1,5 @@
 name: manajemen_rumah_sakit_cli_2
-description: A sample command-line application.
+description: Command Line Interface For Management Hospital.
 version: 1.0.0
 
 environment:

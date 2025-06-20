@@ -6,25 +6,24 @@ import 'package:intl/intl.dart';
 import 'patient_management.dart';
 import 'doctor_availability.dart';
 import 'utils/table_renderer.dart';
+import 'utils/confirmation_helper.dart';
 
-Queue<String> antreanPasien = Queue<String>();
+// Queue aktif menyimpan antrean pasien secara nyata
+Queue<Pasien> antreanPasien = Queue<Pasien>();
 
 void pendaftaranDanPenjadwalan() {
   final data = DoctorAvailability();
   List<Pasien> pasienList = loadPasienData();
-  Map<String, Pasien> byId = {for (var p in pasienList) p.id: p};
-  Map<String, Pasien> byNik = {for (var p in pasienList) p.nik: p};
 
   stdout.write("Masukkan NIK atau ID Pasien: ");
   String? input = stdin.readLineSync();
-
-  Pasien? pasien = byId[input] ?? byNik[input];
-  if (pasien == null) {
-    print("Pasien dengan NIK/ID $input tidak ditemukan.");
+  if (input == null || input.trim().isEmpty) {
+    print("Input tidak valid.");
     return;
   }
 
-  print("Data Pasien: ID: ${pasien.id}, Nama: ${pasien.nama}, NIK: ${pasien.nik}");
+  Pasien? pasien = cariDanKonfirmasiPasien(input.trim(), pasienList);
+  if (pasien == null) return;
 
   // POLI
   print("\nDaftar Poli:");
@@ -62,6 +61,7 @@ void pendaftaranDanPenjadwalan() {
     print("Tidak ada jadwal untuk $selectedDokter.");
     return;
   }
+
   for (int i = 0; i < data.jadwal.length; i++) {
     print("${i + 1}. ${data.jadwal[i]}");
   }
@@ -72,6 +72,21 @@ void pendaftaranDanPenjadwalan() {
 
   String nomorAntrean = _generateNomorAntrean();
   String tanggalDaftar = DateFormat("dd MMMM yyyy").format(DateTime.now());
+
+  // Gunakan konfirmasi rekap
+  bool lanjut = konfirmasiRekap({
+    'Nama Pasien': pasien.nama,
+    'Poli': selectedPoli,
+    'Dokter': selectedDokter,
+    'Jadwal': selectedJadwal,
+    'Nomor Antrean': nomorAntrean,
+    'Tanggal Daftar': tanggalDaftar,
+  });
+
+  if (!lanjut) {
+    print("❌ Antrean tidak disimpan.");
+    return;
+  }
 
   List<Map<String, dynamic>> daftar = _loadPendaftaranData();
   daftar.add({
@@ -86,13 +101,9 @@ void pendaftaranDanPenjadwalan() {
   });
 
   _savePendaftaranData(daftar);
+  antreanPasien.addLast(pasien);
 
-  print("\n✅ Antrean berhasil dibuat untuk ${pasien.nama}.");
-  print("📍 Poli: $selectedPoli");
-  print("🩺 Dokter: $selectedDokter");
-  print("📆 Jadwal: $selectedJadwal");
-  print("🎫 Nomor Antrean: $nomorAntrean");
-  print("🕓 Tanggal Daftar: $tanggalDaftar");
+  print("\n✅ Antrean berhasil disimpan untuk ${pasien.nama}.");
 }
 
 void lihatDaftarAntrean() {
@@ -120,15 +131,33 @@ void lihatDaftarAntrean() {
       ];
     }).toList();
 
-    TableRenderer table = TableRenderer(
-      ['Nomor', 'Tanggal', 'Nama', 'Poli', 'Dokter', 'Jadwal'],
-      rows,
-    );
+    TableRenderer table = TableRenderer([
+      'Nomor',
+      'Tanggal',
+      'Nama',
+      'Poli',
+      'Dokter',
+      'Jadwal',
+    ], rows);
 
     print("\n📋 Daftar Antrean Pasien:");
     table.printTable();
   } catch (e) {
     print("Gagal memuat antrean: $e");
+  }
+}
+
+void tampilkanAntreanAktif() {
+  if (antreanPasien.isEmpty) {
+    print("Antrean saat ini kosong.");
+    return;
+  }
+
+  print("\n🎯 Antrean Pasien Saat Ini:");
+  int no = 1;
+  for (var pasien in antreanPasien) {
+    print("$no. ${pasien.nama} (ID: ${pasien.id})");
+    no++;
   }
 }
 

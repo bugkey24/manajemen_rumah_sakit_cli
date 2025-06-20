@@ -125,7 +125,7 @@ void tambahDataPasien() {
 
   pasienList.add(pasien);
   _savePasienData(pasienList);
-  print('Data pasien ${pasien.nama} dengan ID ${id} dan NIK ${nik} berhasil disimpan!');
+  print('Data pasien ${pasien.nama} dengan ID $id dan NIK $nik berhasil disimpan!');
 }
 
 void cariPasien() {
@@ -159,6 +159,27 @@ void cariPasien() {
 void lihatDaftarPasien() {
   List<Pasien> pasienList = loadPasienData();
 
+  print("Urutkan berdasarkan:");
+  print("1. Nama");
+  print("2. Umur");
+  print("3. ID");
+  stdout.write("Pilihan (1/2/3): ");
+  String? pilihan = stdin.readLineSync();
+
+  switch (pilihan) {
+    case '1':
+      pasienList.sort((a, b) => a.nama.compareTo(b.nama));
+      break;
+    case '2':
+      pasienList.sort((a, b) => a.umur.compareTo(b.umur));
+      break;
+    case '3':
+      pasienList.sort((a, b) => a.id.compareTo(b.id));
+      break;
+    default:
+      print("Pilihan tidak valid. Tampilkan data tanpa pengurutan.");
+  }
+
   List<List<dynamic>> rows = pasienList.map((pasien) {
     return [
       pasien.id,
@@ -173,5 +194,6 @@ void lihatDaftarPasien() {
     ['ID', 'Nama', 'NIK', 'Umur', 'Jenis Kelamin'],
     rows,
   );
+
   tableRenderer.printTable();
 }

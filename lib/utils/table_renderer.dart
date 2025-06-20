@@ -34,7 +34,7 @@ class TableRenderer {
             final text = (entry.value ?? '-').toString().padRight(
               columnWidths[i],
             );
-            return " ${text} ";
+            return " $text ";
           })
           .join("│")
           .replaceAllMapped(RegExp(r"^|$"), (m) => "│");

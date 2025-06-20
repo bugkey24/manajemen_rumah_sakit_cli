@@ -10,33 +10,44 @@ import 'package:manajemen_rumah_sakit_cli_2/history_lookup.dart';
 
 void main() {
   while (true) {
-    stdout.write("\x1B[2J\x1B[0;0H"); // Clear terminal screen
-
+    stdout.write("\x1B[2J\x1B[0;0H"); // Clear terminal
     print("=== MENU UTAMA MANAJEMEN RUMAH SAKIT ===");
 
-    print("\n📁 MANAJEMEN PASIEN");
+    // 📁 MANAJEMEN DATA PASIEN
+    print("\n📁 MANAJEMEN DATA PASIEN");
     print("  1. Tambah Data Pasien");
     print("  2. Cari Pasien");
     print("  3. Lihat Daftar Pasien");
 
-    print("\n📝 PENDAFTARAN & JADWAL");
+    // 📝 PENDAFTARAN & ANTREAN
+    print("\n📝 PENDAFTARAN & ANTREAN");
     print("  4. Pendaftaran & Penjadwalan");
     print("  5. Lihat Semua Antrean");
 
+    // 🩺 KONSULTASI & REKAM MEDIS
     print("\n🩺 KONSULTASI & REKAM MEDIS");
     print("  6. Input Hasil Konsultasi");
-    print("  7. Lihat Semua Rekam Medis");
-    print("  8. Cari Riwayat Pasien");
+    print("  7. Lihat Semua Rekam Medis (Urut Nama)");
+    print("  8. Lihat Rekam Medis per Diagnosis");
+    print("  9. Lihat Riwayat Pasien (Gabungan)");
 
-    print("\n💳 TAGIHAN & LAPORAN");
-    print("  9. Total Tagihan");
-    print(" 10. Lihat Semua Tagihan");
-    print(" 11. Laporan Tagihan Hari Ini");
-    print(" 12. Laporan Tagihan Mingguan");
+    // 💳 MANAJEMEN TAGIHAN
+    print("\n💳 MANAJEMEN TAGIHAN");
+    print(" 10. Tambah Tagihan");
+    print(" 11. Lihat Semua Tagihan (Urut Nama)");
+    print(" 12. Proses Pembayaran");
+    print(" 13. Lihat Laporan Tagihan"); // ⬅ Disatukan dan diganti label
 
-    print("\n🚪 13. Keluar");
+    // 📊 LAPORAN PEMBAYARAN
+    print("\n📊 LAPORAN PEMBAYARAN");
+    print(" 14. Laporan Harian");
+    print(" 15. Laporan Mingguan");
+    print(" 16. Laporan Tagihan per Pasien");
 
-    int menu = readIntInRange("Pilih Menu Utama", 1, 13);
+    // 🚪 KELUAR
+    print("\n🚪 17. Keluar");
+
+    int menu = readIntInRange("Pilih Menu Utama", 1, 17);
     print("");
 
     switch (menu) {
@@ -49,12 +60,14 @@ void main() {
       case 3:
         lihatDaftarPasien();
         break;
+
       case 4:
         pendaftaranDanPenjadwalan();
         break;
       case 5:
         lihatDaftarAntrean();
         break;
+
       case 6:
         inputHasilKonsultasi();
         break;
@@ -62,26 +75,46 @@ void main() {
         tampilkanSemuaRekamMedis();
         break;
       case 8:
-        menuRiwayatPasien();
+        lihatRekamMedisPerDiagnosis();
         break;
       case 9:
+        menuRiwayatPasien();
+        break;
+
+      case 10:
         totalTagihan();
         break;
-      case 10:
+      case 11:
         lihatSemuaTagihan();
         break;
-      case 11:
-        laporanHarian();
-        break;
       case 12:
-        laporanMingguan();
+        prosesPembayaran();
         break;
       case 13:
-        printSlow("Keluar dari sistem...");
-        return;
+        menuLihatTagihan(); // ⬅ pusat kendali tagihan
+        break;
+
+      case 14:
+        laporanHarian();
+        break;
+      case 15:
+        laporanMingguan();
+        break;
+      case 16:
+        laporanPerPasien();
+        break;
+
+      case 17:
+        stdout.write("Apakah Anda yakin ingin keluar? (y/n): ");
+        String? konfirmasi = stdin.readLineSync();
+        if (konfirmasi?.toLowerCase() == 'y') {
+          printSlow("Keluar dari sistem...");
+          return;
+        }
+        break;
     }
 
-    stdout.write("\nTekan ENTER untuk kembali ke menu...");
+    print("\nTekan Enter untuk melanjutkan...");
     stdin.readLineSync();
   }
 }
