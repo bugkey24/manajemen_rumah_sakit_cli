@@ -25,22 +25,30 @@ class TableRenderer {
       return "$left$line$right";
     }
 
+    String centerText(String text, int width) {
+      final len = text.length;
+      final pad = width - len;
+      final left = (pad / 2).floor();
+      final right = pad - left;
+      return ' ' * left + text + ' ' * right;
+    }
+
     String buildRow(List<dynamic> row, {bool isHeader = false}) {
       return row
           .asMap()
           .entries
           .map((entry) {
             final i = entry.key;
-            final text = (entry.value ?? '-').toString().padRight(
-              columnWidths[i],
-            );
-            return " $text ";
+            final rawText = (entry.value ?? '-').toString();
+            final cellText = isHeader
+                ? centerText(rawText, columnWidths[i])
+                : rawText.padRight(columnWidths[i]);
+            return " $cellText ";
           })
           .join("│")
           .replaceAllMapped(RegExp(r"^|$"), (m) => "│");
     }
 
-    // Print
     print(buildDivider("┌", "┬", "┐"));
     print(buildRow(headers, isHeader: true));
     print(buildDivider("├", "┼", "┤"));

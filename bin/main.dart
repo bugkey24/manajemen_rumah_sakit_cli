@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:manajemen_rumah_sakit_cli_2/utils/clear_console.dart';
 import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
 import 'package:manajemen_rumah_sakit_cli_2/utils/print_slow.dart';
 import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
@@ -7,10 +8,11 @@ import 'package:manajemen_rumah_sakit_cli_2/queue_and_schedule.dart';
 import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart';
 import 'package:manajemen_rumah_sakit_cli_2/billing.dart';
 import 'package:manajemen_rumah_sakit_cli_2/history_lookup.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
 
 void main() {
   while (true) {
-    stdout.write("\x1B[2J\x1B[0;0H"); // Clear terminal
+    clearConsole(); // Clear terminal
     print("=== MENU UTAMA MANAJEMEN RUMAH SAKIT ===");
 
     // 📁 MANAJEMEN DATA PASIEN
@@ -48,7 +50,7 @@ void main() {
     print("\n🚪 17. Keluar");
 
     int menu = readIntInRange("Pilih Menu Utama", 1, 17);
-    print("");
+    print("\n");
 
     switch (menu) {
       case 1:
@@ -80,7 +82,6 @@ void main() {
       case 9:
         menuRiwayatPasien();
         break;
-
       case 10:
         totalTagihan();
         break;
@@ -93,7 +94,6 @@ void main() {
       case 13:
         menuLihatTagihan(); // ⬅ pusat kendali tagihan
         break;
-
       case 14:
         laporanHarian();
         break;
@@ -105,15 +105,13 @@ void main() {
         break;
 
       case 17:
-        stdout.write("Apakah Anda yakin ingin keluar? (y/n): ");
-        String? konfirmasi = stdin.readLineSync();
-        if (konfirmasi?.toLowerCase() == 'y') {
+        if (konfirmasiKeluar()) {
           printSlow("Keluar dari sistem...");
+          clearConsole();
           return;
         }
         break;
     }
-
     print("\nTekan Enter untuk melanjutkan...");
     stdin.readLineSync();
   }

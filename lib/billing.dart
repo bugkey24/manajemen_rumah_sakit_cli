@@ -1,10 +1,21 @@
-import 'dart:io';
-import 'dart:convert';
+import 'dart:io' show File, stdin, stdout;
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'package:intl/intl.dart';
 
-import 'patient_management.dart';
-import 'utils/table_renderer.dart';
-import 'utils/confirmation_helper.dart';
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
+
+String formatCurrency(double amount) {
+  final formatter = NumberFormat.currency(
+    locale: 'id_ID',
+    symbol: 'Rp',
+    decimalDigits: 0,
+  );
+  return formatter.format(amount);
+}
 
 class Tagihan {
   String pasienId;
@@ -66,14 +77,14 @@ void totalTagihan() {
   double biayaObat = double.tryParse(stdin.readLineSync() ?? '') ?? 0;
 
   double total = biayaKonsultasi + biayaObat;
-  String tanggal = DateFormat("dd MMMM yyyy").format(DateTime.now());
+  String tanggal = DateTime.now().toIso8601String().split('T')[0];
 
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': pasien.nama,
-    'Tanggal': tanggal,
-    'Konsultasi': 'Rp${biayaKonsultasi.toStringAsFixed(2)}',
-    'Obat': 'Rp${biayaObat.toStringAsFixed(2)}',
-    'Total Tagihan': 'Rp${total.toStringAsFixed(2)}',
+    'Tanggal': formatTanggal(DateTime.now()),
+    'Konsultasi': formatCurrency(biayaKonsultasi),
+    'Obat': formatCurrency(biayaObat),
+    'Total Tagihan': formatCurrency(total),
   });
 
   if (!lanjut) {
@@ -101,21 +112,28 @@ void totalTagihan() {
 
 void laporanHarian() {
   List<Tagihan> data = loadTagihan();
-  String hariIni = DateFormat("dd MMMM yyyy").format(DateTime.now());
+  String hariIni = DateTime.now().toIso8601String().split('T')[0];
 
   List<Tagihan> hariIniData = data
       .where((e) => e.tanggal == hariIni && e.sudahDibayar)
       .toList();
 
   if (hariIniData.isEmpty) {
-    print("Tidak ada tagihan yang dibayar hari ini ($hariIni).");
+    print(
+      "Tidak ada tagihan yang dibayar hari ini (${formatTanggal(DateTime.now())}).",
+    );
     return;
   }
 
   double total = hariIniData.fold(0.0, (sum, e) => sum + e.totalTagihan);
 
   List<List<dynamic>> rows = hariIniData.map((e) {
-    return [e.nama, e.biayaKonsultasi, e.biayaObat, e.totalTagihan];
+    return [
+      e.nama,
+      formatCurrency(e.biayaKonsultasi),
+      formatCurrency(e.biayaObat),
+      formatCurrency(e.totalTagihan),
+    ];
   }).toList();
 
   TableRenderer table = TableRenderer([
@@ -125,15 +143,15 @@ void laporanHarian() {
     'Total',
   ], rows);
 
-  print("\n📅 Laporan Pembayaran Hari Ini: $hariIni");
+  print("\n📅 Laporan Pembayaran Hari Ini: ${formatTanggal(DateTime.now())}");
   table.printTable();
-  print("💰 Total Pendapatan: Rp${total.toStringAsFixed(2)}");
+  print("💰 Total Pendapatan: ${formatCurrency(total)}");
 }
 
 void laporanMingguan() {
   List<Tagihan> data = loadTagihan();
   DateTime sekarang = DateTime.now();
-  DateFormat fmt = DateFormat("dd MMMM yyyy");
+  DateFormat fmt = DateFormat("yyyy-MM-dd");
 
   List<Tagihan> minggu = data.where((e) {
     try {
@@ -154,7 +172,13 @@ void laporanMingguan() {
   double total = minggu.fold(0.0, (sum, e) => sum + e.totalTagihan);
 
   List<List<dynamic>> rows = minggu.map((e) {
-    return [e.tanggal, e.nama, e.biayaKonsultasi, e.biayaObat, e.totalTagihan];
+    return [
+      formatTanggal(e.tanggal),
+      e.nama,
+      formatCurrency(e.biayaKonsultasi),
+      formatCurrency(e.biayaObat),
+      formatCurrency(e.totalTagihan),
+    ];
   }).toList();
 
   TableRenderer table = TableRenderer([
@@ -167,7 +191,7 @@ void laporanMingguan() {
 
   print("\n📆 Laporan Mingguan (Pembayaran Lunas):");
   table.printTable();
-  print("💰 Total Pendapatan 7 Hari Terakhir: Rp${total.toStringAsFixed(2)}");
+  print("💰 Total Pendapatan 7 Hari Terakhir: ${formatCurrency(total)}");
 }
 
 void laporanPerPasien() {
@@ -186,7 +210,12 @@ void laporanPerPasien() {
   for (var entry in grup.entries) {
     print("\n👤 Pasien: ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((e) {
-      return [e.tanggal, e.biayaKonsultasi, e.biayaObat, e.totalTagihan];
+      return [
+        formatTanggal(e.tanggal),
+        formatCurrency(e.biayaKonsultasi),
+        formatCurrency(e.biayaObat),
+        formatCurrency(e.totalTagihan),
+      ];
     }).toList();
 
     TableRenderer table = TableRenderer([
@@ -202,8 +231,9 @@ void laporanPerPasien() {
 void prosesPembayaran() {
   stdout.write("Masukkan ID atau NIK Pasien yang ingin dibayar: ");
   String? input = stdin.readLineSync();
-  List<Tagihan> semua = loadTagihan();
+  if (input == null || input.trim().isEmpty) return;
 
+  List<Tagihan> semua = loadTagihan();
   List<Tagihan> belumBayar = semua
       .where((e) => (e.nik == input || e.pasienId == input) && !e.sudahDibayar)
       .toList();
@@ -214,12 +244,18 @@ void prosesPembayaran() {
   }
 
   print("\n💳 Tagihan Belum Dibayar:");
-  for (int i = 0; i < belumBayar.length; i++) {
-    Tagihan t = belumBayar[i];
-    print(
-      "${i + 1}. ${t.tanggal} | ${t.nama} | Rp${t.totalTagihan.toStringAsFixed(2)}",
-    );
-  }
+  TableRenderer(
+    ['No', 'Tanggal', 'Nama', 'Total'],
+    List.generate(belumBayar.length, (i) {
+      final t = belumBayar[i];
+      return [
+        i + 1,
+        formatTanggal(t.tanggal),
+        t.nama,
+        formatCurrency(t.totalTagihan),
+      ];
+    }),
+  ).printTable();
 
   stdout.write("Pilih nomor tagihan yang akan dibayar: ");
   int pilihan = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
@@ -232,10 +268,10 @@ void prosesPembayaran() {
 
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': target.nama,
-    'Tanggal Tagihan': target.tanggal,
-    'Konsultasi': 'Rp${target.biayaKonsultasi.toStringAsFixed(2)}',
-    'Obat': 'Rp${target.biayaObat.toStringAsFixed(2)}',
-    'Total': 'Rp${target.totalTagihan.toStringAsFixed(2)}',
+    'Tanggal Tagihan': formatTanggal(target.tanggal),
+    'Konsultasi': formatCurrency(target.biayaKonsultasi),
+    'Obat': formatCurrency(target.biayaObat),
+    'Total': formatCurrency(target.totalTagihan),
   });
 
   if (!lanjut) {
@@ -249,38 +285,39 @@ void prosesPembayaran() {
 }
 
 void menuLihatTagihan() {
-  print("\n📋 Pilih Jenis Tagihan yang Ingin Ditampilkan:");
-  print("1. Semua Tagihan");
-  print("2. Tagihan Belum Dibayar");
-  print("3. Tagihan Sudah Dibayar");
-  print("4. Pasien dengan Tagihan Aktif");
-  print("5. Kembali");
-  stdout.write("Pilih opsi (1–5): ");
-  String? input = stdin.readLineSync();
+  while (true) {
+    print("\n📋 Pilih Jenis Tagihan yang Ingin Ditampilkan:");
+    print("1. Semua Tagihan");
+    print("2. Tagihan Belum Dibayar");
+    print("3. Tagihan Sudah Dibayar");
+    print("4. Pasien dengan Tagihan Aktif");
+    print("5. Kembali");
 
-  switch (input) {
-    case '1':
-      lihatSemuaTagihan();
-      break;
-    case '2':
-      lihatTagihanBelumDibayar();
-      break;
-    case '3':
-      lihatTagihanSudahDibayar();
-      break;
-    case '4':
-      tampilkanPasienYangDitagih();
-      break;
-    case '5':
-      return;
-    default:
-      print("❌ Opsi tidak valid.");
+    int input = readIntInRange("Pilih Menu Utama", 1, 5);
+    print("\n");
+
+    switch (input) {
+      case 1:
+        lihatSemuaTagihan();
+        break;
+      case 2:
+        lihatTagihanBelumDibayar();
+        break;
+      case 3:
+        lihatTagihanSudahDibayar();
+        break;
+      case 4:
+        tampilkanPasienYangDitagih();
+        break;
+      case 5:
+        return;
+    }
+    break;
   }
 }
 
 void lihatSemuaTagihan() {
   List<Tagihan> data = loadTagihan();
-
   if (data.isEmpty) {
     print("Belum ada data tagihan.");
     return;
@@ -288,18 +325,26 @@ void lihatSemuaTagihan() {
 
   data.sort((a, b) => a.nama.compareTo(b.nama));
 
-  List<List<dynamic>> rows = data.map((e) => [
-    e.tanggal,
-    e.pasienId,
-    e.nama,
-    e.biayaKonsultasi,
-    e.biayaObat,
-    e.totalTagihan,
-    e.sudahDibayar ? 'Lunas' : 'Belum'
-  ]).toList();
+  List<List<dynamic>> rows = data.map((e) {
+    return [
+      formatTanggal(e.tanggal),
+      e.pasienId,
+      e.nama,
+      formatCurrency(e.biayaKonsultasi),
+      formatCurrency(e.biayaObat),
+      formatCurrency(e.totalTagihan),
+      e.sudahDibayar ? 'Lunas' : 'Belum',
+    ];
+  }).toList();
 
   TableRenderer table = TableRenderer([
-    'Tanggal', 'ID', 'Nama', 'Konsultasi', 'Obat', 'Total', 'Status'
+    'Tanggal',
+    'ID',
+    'Nama',
+    'Konsultasi',
+    'Obat',
+    'Total',
+    'Status',
   ], rows);
 
   print("\n📋 Daftar Semua Tagihan (Urut Nama):");
@@ -315,12 +360,24 @@ void lihatTagihanBelumDibayar() {
   }
 
   print("\n📌 Tagihan Belum Dibayar:");
-  List<List<dynamic>> rows = data.map((e) => [
-    e.tanggal, e.nama, e.biayaKonsultasi, e.biayaObat, e.totalTagihan
-  ]).toList();
+  List<List<dynamic>> rows = data
+      .map(
+        (e) => [
+          formatTanggal(e.tanggal),
+          e.nama,
+          formatCurrency(e.biayaKonsultasi),
+          formatCurrency(e.biayaObat),
+          formatCurrency(e.totalTagihan),
+        ],
+      )
+      .toList();
 
   TableRenderer table = TableRenderer([
-    'Tanggal', 'Nama', 'Konsultasi', 'Obat', 'Total'
+    'Tanggal',
+    'Nama',
+    'Konsultasi',
+    'Obat',
+    'Total',
   ], rows);
 
   table.printTable();
@@ -335,22 +392,38 @@ void lihatTagihanSudahDibayar() {
   }
 
   print("\n📦 Tagihan yang Sudah Dibayar:");
-  List<List<dynamic>> rows = data.map((e) => [
-    e.tanggal, e.nama, e.biayaKonsultasi, e.biayaObat, e.totalTagihan
-  ]).toList();
+  List<List<dynamic>> rows = data
+      .map(
+        (e) => [
+          formatTanggal(e.tanggal),
+          e.nama,
+          formatCurrency(e.biayaKonsultasi),
+          formatCurrency(e.biayaObat),
+          formatCurrency(e.totalTagihan),
+        ],
+      )
+      .toList();
 
   TableRenderer table = TableRenderer([
-    'Tanggal', 'Nama', 'Konsultasi', 'Obat', 'Total'
+    'Tanggal',
+    'Nama',
+    'Konsultasi',
+    'Obat',
+    'Total',
   ], rows);
 
   table.printTable();
 }
 
 void tampilkanPasienYangDitagih() {
-  List<Tagihan> tagihanAktif = loadTagihan().where((e) => !e.sudahDibayar).toList();
+  List<Tagihan> tagihanAktif = loadTagihan()
+      .where((e) => !e.sudahDibayar)
+      .toList();
 
   if (tagihanAktif.isEmpty) {
-    print("🎉 Tidak ada pasien dengan tagihan aktif. Semua tagihan telah dibayar!");
+    print(
+      "🎉 Tidak ada pasien dengan tagihan aktif. Semua tagihan telah dibayar!",
+    );
     return;
   }
 
@@ -358,13 +431,17 @@ void tampilkanPasienYangDitagih() {
   List<Pasien> pasienList = loadPasienData();
 
   List<List<dynamic>> rows = nikSet.map((nik) {
-    Pasien? pasien = pasienList.firstWhere(
+    Pasien pasien = pasienList.firstWhere(
       (p) => p.nik == nik,
       orElse: () => Pasien(
-        id: '-', nama: 'Tidak Dikenal', nik: nik,
-        umur: 0, jenisKelamin: JenisKelamin.lakiLaki,
-        noHandphone: '-', alamat: '-'
-      )
+        id: '-',
+        nama: 'Tidak Dikenal',
+        nik: nik,
+        umur: 0,
+        jenisKelamin: JenisKelamin.lakiLaki,
+        noHandphone: '-',
+        alamat: '-',
+      ),
     );
     return [
       pasien.id,
@@ -372,13 +449,18 @@ void tampilkanPasienYangDitagih() {
       pasien.nik,
       pasien.jenisKelamin.label,
       pasien.umur,
-      pasien.noHandphone
+      pasien.noHandphone,
     ];
   }).toList();
 
   print("\n📌 Pasien dengan Tagihan Belum Lunas:");
   TableRenderer table = TableRenderer([
-    'ID', 'Nama', 'NIK', 'JK', 'Umur', 'No HP'
+    'ID',
+    'Nama',
+    'NIK',
+    'JK',
+    'Umur',
+    'No HP',
   ], rows);
   table.printTable();
 }
@@ -408,5 +490,3 @@ void _simpanTagihan(List<Tagihan> data) {
   final jsonData = data.map((e) => e.toJson()).toList();
   file.writeAsStringSync(jsonEncode(jsonData));
 }
-
-

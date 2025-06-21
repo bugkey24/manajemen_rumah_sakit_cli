@@ -1,8 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
-import 'utils/table_renderer.dart';
+import 'dart:io' show File, stdin, stdout;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
-// ENUM & EXTENSION untuk Jenis Kelamin
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
+
 enum JenisKelamin { lakiLaki, perempuan }
 
 extension JenisKelaminExtension on JenisKelamin {
@@ -45,7 +46,7 @@ class Pasien {
       'nama': nama,
       'nik': nik,
       'umur': umur,
-      'jenisKelamin': jenisKelamin.label, // Simpan sebagai 'L' atau 'P'
+      'jenisKelamin': jenisKelamin.label,
       'noHandphone': noHandphone,
       'alamat': alamat,
     };
@@ -83,11 +84,14 @@ void _savePasienData(List<Pasien> pasienList) {
 
 void tambahDataPasien() {
   List<Pasien> pasienList = loadPasienData();
-
   Set<String> nikSet = pasienList.map((p) => p.nik).toSet();
 
   stdout.write("Masukkan NIK Pasien: ");
   String? nik = stdin.readLineSync();
+  if (nik == null || nik.trim().isEmpty) {
+    print("NIK tidak boleh kosong.");
+    return;
+  }
   if (nikSet.contains(nik)) {
     print("NIK sudah terdaftar. Tambah pasien dibatalkan.");
     return;
@@ -97,12 +101,21 @@ void tambahDataPasien() {
 
   stdout.write("Masukkan Nama Pasien: ");
   String? nama = stdin.readLineSync();
+  if (nama == null || nama.trim().isEmpty) {
+    print("Nama tidak boleh kosong.");
+    return;
+  }
+
   stdout.write("Masukkan Umur Pasien: ");
-  int umur = int.parse(stdin.readLineSync()!);
+  int? umur = int.tryParse(stdin.readLineSync() ?? '');
+  if (umur == null || umur <= 0) {
+    print("Umur tidak valid.");
+    return;
+  }
 
   stdout.write("Masukkan Jenis Kelamin (L/P): ");
   String? genderInput = stdin.readLineSync();
-  JenisKelamin? jenisKelamin = JenisKelaminExtension.fromInput(genderInput!);
+  JenisKelamin? jenisKelamin = JenisKelaminExtension.fromInput(genderInput ?? '');
   if (jenisKelamin == null) {
     print("Jenis kelamin tidak valid. Gunakan L untuk Laki-laki atau P untuk Perempuan.");
     return;
@@ -110,74 +123,101 @@ void tambahDataPasien() {
 
   stdout.write("Masukkan No Handphone: ");
   String? noHandphone = stdin.readLineSync();
+  if (noHandphone == null || noHandphone.trim().isEmpty) {
+    print("Nomor handphone tidak boleh kosong.");
+    return;
+  }
+
   stdout.write("Masukkan Alamat: ");
   String? alamat = stdin.readLineSync();
+  if (alamat == null || alamat.trim().isEmpty) {
+    print("Alamat tidak boleh kosong.");
+    return;
+  }
 
   Pasien pasien = Pasien(
     id: id,
-    nama: nama!,
-    nik: nik!,
+    nama: nama.trim(),
+    nik: nik.trim(),
     umur: umur,
     jenisKelamin: jenisKelamin,
-    noHandphone: noHandphone!,
-    alamat: alamat!,
+    noHandphone: noHandphone.trim(),
+    alamat: alamat.trim(),
   );
 
   pasienList.add(pasien);
   _savePasienData(pasienList);
-  print('Data pasien ${pasien.nama} dengan ID $id dan NIK $nik berhasil disimpan!');
+
+  print('✅ Data pasien ${pasien.nama} berhasil disimpan dengan ID $id.');
+  print('📋 Total pasien saat ini: ${pasienList.length}');
 }
 
 void cariPasien() {
   stdout.write("Masukkan NIK atau ID Pasien: ");
   String? input = stdin.readLineSync();
+  if (input == null || input.trim().isEmpty) {
+    print("Input tidak boleh kosong.");
+    return;
+  }
 
   List<Pasien> pasienList = loadPasienData();
-
   Map<String, Pasien> mapById = {for (var p in pasienList) p.id: p};
   Map<String, Pasien> mapByNik = {for (var p in pasienList) p.nik: p};
 
-  Pasien? pasien = mapById[input] ?? mapByNik[input];
+  Pasien? pasien = mapById[input.trim()] ?? mapByNik[input.trim()];
 
   if (pasien != null) {
     List<List<dynamic>> row = [
-      [pasien.id, pasien.nama, pasien.nik, pasien.umur, pasien.jenisKelamin.label],
+      [
+        pasien.id,
+        pasien.nama,
+        pasien.nik,
+        pasien.umur,
+        pasien.jenisKelamin.label,
+        pasien.noHandphone,
+        pasien.alamat,
+      ],
     ];
 
-    TableRenderer tableRenderer = TableRenderer(
-      ['ID', 'Nama', 'NIK', 'Umur', 'Jenis Kelamin'],
-      row,
-    );
+    TableRenderer tableRenderer = TableRenderer([
+      'ID',
+      'Nama',
+      'NIK',
+      'Umur',
+      'Jenis Kelamin',
+      'No Handphone',
+      'Alamat',
+    ], row);
 
-    print("\nData Pasien Ditemukan:\n");
+    print("\n📌 Data Pasien Ditemukan:\n");
     tableRenderer.printTable();
   } else {
-    print("Pasien dengan NIK/ID $input tidak ditemukan.");
+    print("❌ Pasien dengan NIK/ID $input tidak ditemukan.");
   }
 }
 
 void lihatDaftarPasien() {
   List<Pasien> pasienList = loadPasienData();
+  if (pasienList.isEmpty) {
+    print("Belum ada data pasien.");
+    return;
+  }
 
   print("Urutkan berdasarkan:");
   print("1. Nama");
   print("2. Umur");
   print("3. ID");
-  stdout.write("Pilihan (1/2/3): ");
-  String? pilihan = stdin.readLineSync();
-
+  int pilihan = readIntInRange("Pilih opsi", 1, 3);
+  
   switch (pilihan) {
-    case '1':
+    case 1:
       pasienList.sort((a, b) => a.nama.compareTo(b.nama));
       break;
-    case '2':
+    case 2:
       pasienList.sort((a, b) => a.umur.compareTo(b.umur));
       break;
-    case '3':
+    case 3:
       pasienList.sort((a, b) => a.id.compareTo(b.id));
-      break;
-    default:
-      print("Pilihan tidak valid. Tampilkan data tanpa pengurutan.");
   }
 
   List<List<dynamic>> rows = pasienList.map((pasien) {
@@ -190,10 +230,14 @@ void lihatDaftarPasien() {
     ];
   }).toList();
 
-  TableRenderer tableRenderer = TableRenderer(
-    ['ID', 'Nama', 'NIK', 'Umur', 'Jenis Kelamin'],
-    rows,
-  );
+  TableRenderer tableRenderer = TableRenderer([
+    'ID',
+    'Nama',
+    'NIK',
+    'Umur',
+    'Jenis Kelamin',
+  ], rows);
 
+  print("\n📋 Daftar Pasien:");
   tableRenderer.printTable();
 }

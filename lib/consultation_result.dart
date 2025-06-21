@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:convert';
-import 'patient_management.dart';
-import 'utils/table_renderer.dart';
-import 'utils/confirmation_helper.dart';
+import 'package:intl/intl.dart';
+
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
 
 class RekamMedis {
   String pasienId;
@@ -11,6 +13,8 @@ class RekamMedis {
   String diagnosis;
   String resepObat;
   String tindakanMedis;
+  String dokter;
+  DateTime tanggal;
 
   RekamMedis({
     required this.pasienId,
@@ -19,6 +23,8 @@ class RekamMedis {
     required this.diagnosis,
     required this.resepObat,
     required this.tindakanMedis,
+    required this.dokter,
+    required this.tanggal,
   });
 
   Map<String, dynamic> toJson() => {
@@ -28,6 +34,8 @@ class RekamMedis {
     'diagnosis': diagnosis,
     'resepObat': resepObat,
     'tindakanMedis': tindakanMedis,
+    'dokter': dokter,
+    'tanggal': tanggal.toIso8601String(),
   };
 
   static RekamMedis fromJson(Map<String, dynamic> json) => RekamMedis(
@@ -37,6 +45,8 @@ class RekamMedis {
     diagnosis: json['diagnosis'],
     resepObat: json['resepObat'],
     tindakanMedis: json['tindakanMedis'],
+    dokter: json['dokter'] ?? '-',
+    tanggal: DateTime.tryParse(json['tanggal'] ?? '') ?? DateTime(1900),
   );
 }
 
@@ -49,6 +59,20 @@ void inputHasilKonsultasi() {
 
   Pasien? pasien = cariDanKonfirmasiPasien(input.trim(), pasienList);
   if (pasien == null) return;
+
+  // Cari pendaftaran terakhir pasien
+  final pendaftaran = _cariPendaftaranTerakhir(pasien);
+  if (pendaftaran == null) {
+    print(
+      "⚠️ Pasien belum pernah terdaftar. Tidak dapat mencatat hasil konsultasi.",
+    );
+    return;
+  }
+
+  String dokter = pendaftaran['dokter'] ?? '-';
+  final jadwal = pendaftaran['jadwal'];
+  DateTime tanggalKonsultasi =
+      DateTime.tryParse(jadwal?['tanggal'] ?? '') ?? DateTime.now();
 
   stdout.write("Masukkan Diagnosis: ");
   String? diagnosis = stdin.readLineSync();
@@ -64,6 +88,8 @@ void inputHasilKonsultasi() {
 
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': pasien.nama,
+    'Dokter Pemeriksa': dokter,
+    'Tanggal Konsultasi': DateFormat('dd-MM-yyyy').format(tanggalKonsultasi),
     'Diagnosis': diagnosis!,
     'Resep Obat': resep!,
     'Tindakan Medis': tindakan!,
@@ -81,79 +107,68 @@ void inputHasilKonsultasi() {
     diagnosis: diagnosis,
     resepObat: resep,
     tindakanMedis: tindakan,
+    dokter: dokter,
+    tanggal: tanggalKonsultasi,
   );
 
   _saveRekamMedisData(rekamMedis);
   print("✅ Rekam medis berhasil disimpan untuk pasien ${pasien.nama}.");
 }
 
-void tampilkanSemuaRekamMedis() {
-  List<RekamMedis> daftarRekam = loadRekamMedisData();
+Map<String, dynamic>? _cariPendaftaranTerakhir(Pasien pasien) {
+  final file = File('data/pendaftaran_data.json');
+  if (!file.existsSync()) return null;
 
-  if (daftarRekam.isEmpty) {
+  try {
+    List<dynamic> daftar = jsonDecode(file.readAsStringSync());
+    List<Map<String, dynamic>> filtered = daftar
+        .cast<Map<String, dynamic>>()
+        .where((e) => e['pasienId'] == pasien.id || e['nik'] == pasien.nik)
+        .toList();
+
+    if (filtered.isEmpty) return null;
+
+    filtered.sort(
+      (a, b) => (b['tanggalDaftar'] ?? '').toString().compareTo(
+        (a['tanggalDaftar'] ?? '').toString(),
+      ),
+    );
+
+    return filtered.first;
+  } catch (_) {
+    return null;
+  }
+}
+
+void tampilkanSemuaRekamMedis() {
+  List<RekamMedis> daftar = loadRekamMedisData();
+  if (daftar.isEmpty) {
     print("Belum ada data rekam medis yang tersimpan.");
     return;
   }
 
-  // 🔸 Sortir berdasarkan nama pasien
-  daftarRekam.sort((a, b) => a.nama.compareTo(b.nama));
+  daftar.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+  final formatter = DateFormat('dd-MM-yyyy');
 
-  List<List<dynamic>> rows = daftarRekam.map((rekam) {
+  List<List<dynamic>> rows = daftar.map((rekam) {
     return [
-      rekam.pasienId,
+      formatter.format(rekam.tanggal),
       rekam.nama,
+      rekam.dokter,
       rekam.diagnosis,
       rekam.resepObat,
       rekam.tindakanMedis,
     ];
   }).toList();
 
-  TableRenderer tableRenderer = TableRenderer([
-    'ID Pasien',
+  TableRenderer([
+    'Tanggal',
     'Nama',
+    'Dokter',
     'Diagnosis',
     'Resep Obat',
     'Tindakan Medis',
-  ], rows);
-
-  print("\n📋 Daftar Rekam Medis (Urut Nama):");
-  tableRenderer.printTable();
-}
-
-void tampilkanRekamMedisPasien() {
-  stdout.write("Masukkan ID atau NIK Pasien: ");
-  String? input = stdin.readLineSync();
-
-  List<RekamMedis> semuaData = loadRekamMedisData();
-  List<RekamMedis> hasil = semuaData
-      .where((rekam) => rekam.pasienId == input || rekam.nik == input)
-      .toList();
-
-  if (hasil.isEmpty) {
-    print("Tidak ditemukan rekam medis untuk pasien tersebut.");
-    return;
-  }
-
-  List<List<dynamic>> rows = hasil.map((rekam) {
-    return [
-      rekam.pasienId,
-      rekam.nama,
-      rekam.diagnosis,
-      rekam.resepObat,
-      rekam.tindakanMedis,
-    ];
-  }).toList();
-
-  TableRenderer tableRenderer = TableRenderer([
-    'ID Pasien',
-    'Nama',
-    'Diagnosis',
-    'Resep Obat',
-    'Tindakan Medis',
-  ], rows);
-
-  print("\n📁 Rekam Medis Pasien:");
-  tableRenderer.printTable();
+  ], rows).printTable();
 }
 
 void lihatRekamMedisPerDiagnosis() {
@@ -168,20 +183,27 @@ void lihatRekamMedisPerDiagnosis() {
     grup.putIfAbsent(rekam.diagnosis, () => []).add(rekam);
   }
 
+  final formatter = DateFormat('dd-MM-yyyy');
+
   for (var entry in grup.entries) {
     print("\n🧾 Diagnosis: ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((rekam) {
-      return [rekam.pasienId, rekam.nama, rekam.resepObat, rekam.tindakanMedis];
+      return [
+        formatter.format(rekam.tanggal),
+        rekam.nama,
+        rekam.dokter,
+        rekam.resepObat,
+        rekam.tindakanMedis,
+      ];
     }).toList();
 
-    TableRenderer table = TableRenderer([
-      'ID Pasien',
+    TableRenderer([
+      'Tanggal',
       'Nama',
+      'Dokter',
       'Resep Obat',
       'Tindakan Medis',
-    ], rows);
-
-    table.printTable();
+    ], rows).printTable();
   }
 }
 
@@ -202,7 +224,6 @@ List<RekamMedis> loadRekamMedisData() {
   try {
     String jsonData = file.readAsStringSync().trim();
     if (jsonData.isEmpty) jsonData = '[]';
-
     List<dynamic> jsonList = jsonDecode(jsonData);
     return jsonList.map((e) => RekamMedis.fromJson(e)).toList();
   } catch (e) {

@@ -1,133 +1,117 @@
-# 🏥 CLI Hospital Management — Patient, Consultation & Billing System
+# 🏥 Manajemen Rumah Sakit CLI (Dart)
 
-A Command Line Interface (CLI) system built in Dart for managing hospital operations, from patient data to scheduling, consultations, and billing reports. Designed with structured modular logic and clear data handling.
-
----
-
-## 🎯 Project Objectives
-
-- Streamline patient and consultation management through a lightweight CLI.
-- Apply Object-Oriented Programming (OOP) and data structure concepts in a practical case.
-- Support real-time patient queueing and medical record tracking.
+Aplikasi Command-Line Interface (CLI) berbasis Dart untuk mengelola operasional rumah sakit. Sistem ini mencakup manajemen data pasien, pendaftaran dan antrean, hasil konsultasi dan rekam medis, sistem tagihan dan laporan keuangan. Proyek ini menerapkan prinsip **Object-Oriented Programming (OOP)** dan struktur data dinamis menggunakan Dart.
 
 ---
 
-## 🧩 Core Features
+## 📦 Fitur Utama
 
-### 👥 Patient Management
-- Add, search, and display patient records.
-- Unique NIK validation and gender enum with input/output conversion.
-
-### 🗓 Registration & Scheduling
-- Choose medical department (poli), doctor, and schedule.
-- Real-time queue managed with `Queue<Pasien>`.
-
-### 💬 Medical Consultations
-- Input diagnosis, prescriptions, and medical procedures.
-- Store consultation results using structured JSON data.
-
-### 💳 Billing & Reporting
-- Input costs and generate patient bills.
-- Daily, weekly, and per-patient income reports.
-- Encapsulated in a dedicated `Tagihan` class.
-
-### 📂 Patient History Lookup
-- Display full history of registration, consultation, and billing by NIK/ID.
+- 👤 **Data Pasien**: Tambah, cari, dan lihat daftar pasien
+- 📝 **Pendaftaran & Jadwal**: Antrean per poli dan dokter
+- 🩺 **Rekam Medis**: Diagnosis, resep, dan tindakan medis
+- 💳 **Tagihan**: Hitung biaya layanan dan obat, proses pelunasan
+- 📊 **Laporan**: Ringkasan harian, mingguan, dan per pasien
+- 🔎 **Riwayat Pasien**: Gabungan histori konsultasi & pembayaran
+- ✅ **Validasi Interaktif**: Konfirmasi dua langkah saat input
 
 ---
 
-## 💡 Data Structures Implemented
+## 🚀 Instalasi & Menjalankan
 
-| Data Structure              | Usage Example                                          |
-|-----------------------------|--------------------------------------------------------|
-| List / Set / Map            | Core data containers for patients, doctors, billing    |
-| Queue<Pasien>               | Real-time patient queue in registration module         |
-| Sorting (List.sort)         | Sorting medical records and billing reports            |
-| Map<String, List<>>         | Grouping records by department, diagnosis, and patient |
+### 1. Persiapan
 
----
+- Install [Dart SDK](https://dart.dev/get-dart) minimal versi **3.0**
+- OS: Windows / Linux / macOS
 
-## 🧠 OOP Concepts Used
+### 2. Clone dan jalankan
 
-- **Class & Objects**: `Pasien`, `Tagihan`, `RekamMedis`, `DoctorAvailability`
-- **Encapsulation**: All data is contained within well-defined class structures
-- **Abstraction & Serialization**: Classes handle JSON read/write internally
-- **Enum + Extension**: Gender handling with cleaner input formatting
+```bash
+git clone https://github.com/namamu/manajemen_rumah_sakit_cli.git
+cd manajemen_rumah_sakit_cli
+dart run bin/main.dart
+```
 
 ---
 
-## ▶️ How to Run
+## 🧱 Struktur Proyek
 
-1. Ensure [Dart SDK](https://dart.dev/get-dart) is installed.
-2. Clone this repository.
-3. Run the CLI:
-
-   ```bash
-   dart run main.dart
-
-# 🏥 CLI Rumah Sakit — Aplikasi Manajemen Pasien, Konsultasi, & Tagihan
-
-Sistem manajemen rumah sakit berbasis Command Line Interface (CLI) yang dibuat dengan Dart. Dirancang untuk menangani operasional medis secara modular, terstruktur, dan sepenuhnya berjalan di dalam terminal.
-
----
-
-## 🎯 Tujuan Proyek
-
-- Mengelola data pasien secara efisien.
-- Menerapkan konsep Object-Oriented Programming (OOP) dan struktur data dalam solusi nyata.
-- Menyediakan fitur manajemen antrean, pendaftaran, konsultasi, dan laporan tagihan.
-
----
-
-## 🧩 Fitur Utama
-
-### 👥 Manajemen Pasien
-- Tambah, cari, dan tampilkan data pasien.
-- Validasi NIK unik dan enum untuk jenis kelamin.
-
-### 🗓 Pendaftaran & Jadwal
-- Pemilihan Poli, Dokter, dan Jadwal praktik.
-- Antrean dinamis menggunakan struktur data `Queue`.
-
-### 💬 Hasil Konsultasi
-- Input diagnosis, resep obat, dan tindakan medis.
-- Menyimpan rekam medis dalam format JSON.
-
-### 💳 Tagihan & Laporan
-- Hitung biaya konsultasi dan obat.
-- Laporan harian, mingguan, serta per pasien.
-- Data disimpan dan diproses dalam `class Tagihan`.
-
-### 📂 Riwayat Pasien
-- Tampilkan seluruh riwayat pendaftaran, konsultasi, dan tagihan dari satu antarmuka.
+```
+bin/
+  main.dart                   # Titik masuk aplikasi CLI
+lib/
+  patient_management.dart
+  queue_and_schedule.dart
+  consultation_result.dart
+  billing.dart
+  history_lookup.dart
+  utils/
+    table_renderer.dart
+    input_validations.dart
+    confirmation_helper.dart
+data/
+  pasien_data.json
+  tagihan_data.json
+  rekam_medis_data.json
+  pendaftaran_data.json
+  doctor_availability.json
+```
 
 ---
 
-## 💡 Struktur Data yang Digunakan
+## 🧠 OOP & Struktur Data
 
-| Struktur Data              | Implementasi                                                 |
-|----------------------------|--------------------------------------------------------------|
-| List, Set, Map             | Manajemen data pasien, tagihan, dan konsultasi               |
-| Queue<Pasien>              | Antrian pasien dinamis                                       |
-| Sorting (List.sort)        | Urut nama/tagihan/rekam medis                                |
-| Map<String, List<>>        | Grouping per poli, diagnosis, dan pasien                     |
+### ✅ OOP
+- Class modular: `Pasien`, `Tagihan`, `RekamMedis`
+- `factory fromJson()` untuk parsing JSON
+- Modul pemisah antar domain (pasien, billing, antrean)
 
----
-
-## 🧠 Konsep OOP yang Diterapkan
-
-- **Class & Object**: `Pasien`, `Tagihan`, `RekamMedis`, `DoctorAvailability`.
-- **Encapsulation**: Akses data melalui method dan constructor.
-- **Enum & Extension**: JenisKelamin → konversi input ke label (`L`/`P`).
-- **Modularisasi**: Setiap fitur dipisahkan ke dalam file yang terstruktur.
+### ✅ Struktur Data
+- **List**: Menyimpan entitas dinamis (pasien, tagihan, dll)
+- **Set**: Menjamin keunikan (NIK, ID)
+- **Map**: Lookup cepat (ID → data pasien)
+- **Sort & filter**: Untuk laporan dan pencarian
+- **JSON**: Penyimpanan data lokal
 
 ---
 
-## 🛠 Cara Menjalankan
+## 💬 Contoh Menu CLI
 
-1. Install [Dart SDK](https://dart.dev/get-dart).
-2. Clone repositori ini dan buka terminal.
-3. Jalankan:
+```text
+=== MENU UTAMA MANAJEMEN RUMAH SAKIT ===
 
-   ```bash
-   dart run main.dart
+📁 MANAJEMEN DATA PASIEN
+  1. Tambah Data Pasien
+  2. Cari Pasien
+  3. Lihat Daftar Pasien
+
+💳 MANAJEMEN TAGIHAN
+ 10. Tambah Tagihan
+ 11. Lihat Semua Tagihan (Urut Nama)
+ 12. Proses Pembayaran
+ 13. Lihat Laporan Tagihan  <-- 🔥 Menu Sub-opsi
+```
+
+---
+
+## 📚 Fitur Tambahan yang Disarankan
+
+- ✏️ Edit & hapus data pasien dengan pengecekan dependensi
+- 📄 Ekspor laporan ke CSV atau TXT
+- 🔐 Mode akun (admin, kasir, dokter)
+- ☁️ Backup dan restore dari folder `data/`
+- ✅ Unit testing menggunakan package `test`
+
+---
+
+## 👤 Kontributor
+
+- **Nama**: Dida  
+- **Bahasa**: Dart  
+- **Peran**: Arsitek sistem & pengembang CLI modular
+
+---
+
+## 📄 Lisensi
+
+Proyek ini open-source untuk kebutuhan edukasi dan pengembangan non-komersial.  
+Silakan fork, gunakan, dan sesuaikan sesuai kebutuhan pembelajaranmu.

@@ -1,10 +1,30 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show File, stdin, stdout;
+import 'dart:convert' show jsonDecode;
 
-import 'consultation_result.dart';
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart';
 import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
 import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
+
+String formatJadwal(dynamic jadwal) {
+  if (jadwal is String && jadwal.trim().isNotEmpty) return jadwal;
+
+  if (jadwal is Map &&
+      jadwal.containsKey('tanggal') &&
+      jadwal.containsKey('jam')) {
+    try {
+      final tgl = DateTime.tryParse(jadwal['tanggal']);
+      final jam = jadwal['jam']?.toString() ?? '-';
+      if (tgl != null) {
+        return "${formatTanggal(tgl)} - $jam";
+      }
+    } catch (_) {}
+  }
+
+  return "-";
+}
 
 void menuRiwayatPasien() {
   while (true) {
@@ -14,27 +34,25 @@ void menuRiwayatPasien() {
     print("3. Lihat Riwayat Tagihan");
     print("4. Lihat Riwayat per Poli");
     print("5. Kembali ke menu utama");
-    stdout.write("Pilih opsi (1–5): ");
-    String? pilihan = stdin.readLineSync();
+    int pilihan = readIntInRange("Pilih menu utama", 1, 5);
 
     switch (pilihan) {
-      case '1':
+      case 1:
         cariPendaftaran();
         break;
-      case '2':
+      case 2:
         cariKonsultasi();
         break;
-      case '3':
+      case 3:
         cariTagihan();
         break;
-      case '4':
+      case 4:
         lihatRiwayatPerPoli();
         break;
-      case '5':
+      case 5:
         return;
-      default:
-        print("Pilihan tidak valid.");
     }
+    break;
   }
 }
 
@@ -63,25 +81,30 @@ void cariPendaftaran() {
     print("Tidak ditemukan pendaftaran untuk pasien tersebut.");
   } else {
     hasil.sort((a, b) {
-      DateTime tglA = DateTime.tryParse(a['tanggalDaftar'] ?? '') ?? DateTime(1900);
-      DateTime tglB = DateTime.tryParse(b['tanggalDaftar'] ?? '') ?? DateTime(1900);
+      DateTime tglA =
+          DateTime.tryParse(a['tanggalDaftar'] ?? '') ?? DateTime(1900);
+      DateTime tglB =
+          DateTime.tryParse(b['tanggalDaftar'] ?? '') ?? DateTime(1900);
       return tglB.compareTo(tglA);
     });
 
     List<List<dynamic>> rows = hasil.map((p) {
       return [
-        p['tanggalDaftar'] ?? '-',
+        formatTanggal(p['tanggalDaftar']),
         p['poli'] ?? '-',
         p['dokter'] ?? '-',
-        p['jadwal'] ?? '-',
+        formatJadwal(p['jadwal']),
         p['nomorAntrean'] ?? '-',
       ];
     }).toList();
 
-    TableRenderer table = TableRenderer(
-      ['Tanggal', 'Poli', 'Dokter', 'Jadwal', 'Antrean'],
-      rows,
-    );
+    TableRenderer table = TableRenderer([
+      'Tanggal',
+      'Poli',
+      'Dokter',
+      'Jadwal',
+      'Antrean',
+    ], rows);
 
     print("\n📌 Riwayat Pendaftaran & Jadwal (Urut Terbaru):");
     table.printTable();
@@ -104,14 +127,27 @@ void cariKonsultasi() {
   if (rekam.isEmpty) {
     print("Belum ada hasil konsultasi untuk pasien ini.");
   } else {
-    List<List<dynamic>> rows = rekam.map((r) {
-      return [r.diagnosis, r.resepObat, r.tindakanMedis];
-    }).toList();
+    rekam.sort((a, b) => b.tanggal.compareTo(a.tanggal));
 
-    TableRenderer tableRenderer = TableRenderer(
-      ['Diagnosis', 'Resep Obat', 'Tindakan Medis'],
-      rows,
-    );
+    List<List<dynamic>> rows = rekam
+        .map(
+          (r) => [
+            formatTanggal(r.tanggal),
+            r.dokter,
+            r.diagnosis,
+            r.resepObat,
+            r.tindakanMedis,
+          ],
+        )
+        .toList();
+
+    TableRenderer tableRenderer = TableRenderer([
+      'Tanggal',
+      'Dokter',
+      'Diagnosis',
+      'Resep Obat',
+      'Tindakan Medis',
+    ], rows);
 
     print("\n📋 Riwayat Hasil Konsultasi:");
     tableRenderer.printTable();
@@ -144,17 +180,19 @@ void cariTagihan() {
   } else {
     List<List<dynamic>> rows = hasil.map((e) {
       return [
-        e['tanggal'] ?? '-',
+        formatTanggal(e['tanggal']),
         e['biayaKonsultasi'],
         e['biayaObat'],
         e['totalTagihan'],
       ];
     }).toList();
 
-    TableRenderer tableRenderer = TableRenderer(
-      ['Tanggal', 'Konsultasi', 'Obat', 'Total'],
-      rows,
-    );
+    TableRenderer tableRenderer = TableRenderer([
+      'Tanggal',
+      'Konsultasi',
+      'Obat',
+      'Total',
+    ], rows);
 
     print("\n💳 Riwayat Tagihan:");
     tableRenderer.printTable();
@@ -180,18 +218,21 @@ void lihatRiwayatPerPoli() {
     print("\n🏥 Poli: ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((e) {
       return [
-        e['tanggalDaftar'] ?? '-',
+        formatTanggal(e['tanggalDaftar']),
         e['nama'],
         e['dokter'],
-        e['jadwal'],
+        formatJadwal(e['jadwal']),
         e['nomorAntrean'],
       ];
     }).toList();
 
-    TableRenderer table = TableRenderer(
-      ['Tanggal', 'Nama', 'Dokter', 'Jadwal', 'Antrean'],
-      rows,
-    );
+    TableRenderer table = TableRenderer([
+      'Tanggal',
+      'Nama',
+      'Dokter',
+      'Jadwal',
+      'Antrean',
+    ], rows);
 
     table.printTable();
   }

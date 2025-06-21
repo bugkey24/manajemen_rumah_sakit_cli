@@ -10,57 +10,21 @@
     "Jantung"
   ],
   "dokter": [
-    {
-      "nama": "Dr. Andi Wijaya, Sp.PD",
-      "poli": "Umum"
-    },
-    {
-      "nama": "Dr. Rina Arifah, Sp.A",
-      "poli": "Anak"
-    },
-    {
-      "nama": "Dr. Tono Setiawan, Sp.MK",
-      "poli": "Mata"
-    },
-    {
-      "nama": "Dr. Siti Maemunah, Sp.KJ",
-      "poli": "Kandungan"
-    },
-    {
-      "nama": "Dr. Budi Santoso, Sp.THT",
-      "poli": "THT"
-    },
-    {
-      "nama": "Dr. Lina Sari, Sp.JP",
-      "poli": "Jantung"
-    },
-    {
-      "nama": "Dr. Maria Putri, Sp.S",
-      "poli": "Saraf"
-    },
-    {
-      "nama": "Dr. Taufik Rahman, Sp.Gigi",
-      "poli": "Gigi"
-    }
+    { "nama": "Dr. Andi Wijaya, Sp.PD", "poli": "Umum" },
+    { "nama": "Dr. Rina Arifah, Sp.A", "poli": "Anak" },
+    { "nama": "Dr. Tono Setiawan, Sp.MK", "poli": "Mata" },
+    { "nama": "Dr. Siti Maemunah, Sp.KJ", "poli": "Kandungan" },
+    { "nama": "Dr. Budi Santoso, Sp.THT", "poli": "THT" },
+    { "nama": "Dr. Lina Sari, Sp.JP", "poli": "Jantung" },
+    { "nama": "Dr. Maria Putri, Sp.S", "poli": "Saraf" },
+    { "nama": "Dr. Taufik Rahman, Sp.Gigi", "poli": "Gigi" }
   ],
   "jadwal": [
-    {
-      "jadwal": "Tanggal 20-06-2025, Jumat, Jam 15:00 - 17:00"
-    },
-    {
-      "jadwal": "Tanggal 21-06-2025, Sabtu, Jam 10:00 - 12:00"
-    },
-    {
-      "jadwal": "Tanggal 22-06-2025, Minggu, Jam 15:00 - 17:00"
-    },
-    {
-      "jadwal": "Tanggal 23-06-2025, Senin, Jam 15:00 - 17:00"
-    },
-    {
-      "jadwal": "Tanggal 24-06-2025, Selasa, Jam 13:00 - 15:00"
-    },
-    {
-      "jadwal": "Tanggal 25-06-2025, Rabu, Jam 15:00 - 17:00"
-    }
+    { "tanggal": "2025-06-20", "jam": "15:00" },
+    { "tanggal": "2025-06-21", "jam": "10:00" },
+    { "tanggal": "2025-06-22", "jam": "15:00" },
+    { "tanggal": "2025-06-23", "jam": "15:00" },
+    { "tanggal": "2025-06-24", "jam": "13:00" },
+    { "tanggal": "2025-06-25", "jam": "15:00" }
   ]
 }

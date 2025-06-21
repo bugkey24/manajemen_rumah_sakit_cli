@@ -1,14 +1,13 @@
 import 'dart:io';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:intl/intl.dart';
 
-import 'patient_management.dart';
-import 'doctor_availability.dart';
-import 'utils/table_renderer.dart';
-import 'utils/confirmation_helper.dart';
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/doctor_availability.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
 
-// Queue aktif menyimpan antrean pasien secara nyata
 Queue<Pasien> antreanPasien = Queue<Pasien>();
 
 void pendaftaranDanPenjadwalan() {
@@ -25,63 +24,101 @@ void pendaftaranDanPenjadwalan() {
   Pasien? pasien = cariDanKonfirmasiPasien(input.trim(), pasienList);
   if (pasien == null) return;
 
-  // POLI
-  print("\nDaftar Poli:");
   if (data.poli.isEmpty) {
     print("Tidak ada poli yang tersedia.");
     return;
   }
-  for (int i = 0; i < data.poli.length; i++) {
-    print("${i + 1}. ${data.poli[i]}");
+
+  print("\n🏥 Daftar Poli:");
+  final poliTable = List.generate(
+    data.poli.length,
+    (i) => [i + 1, data.poli[i]],
+  );
+  TableRenderer(['No', 'Poli'], poliTable).printTable();
+
+  stdout.write("Pilih Poli [1-${data.poli.length}]: ");
+  int poliIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (poliIndex < 1 || poliIndex > data.poli.length) {
+    print("Pilihan tidak valid.");
+    return;
   }
+  String selectedPoli = data.poli[poliIndex - 1];
 
-  stdout.write("Pilih Poli: ");
-  int poliIndex = int.parse(stdin.readLineSync()!) - 1;
-  String selectedPoli = data.poli[poliIndex];
-
-  // DOKTER
   List<String> dokterList = data.dokterByPoli(selectedPoli);
   if (dokterList.isEmpty) {
     print("Tidak ada dokter di Poli $selectedPoli.");
     return;
   }
 
-  print("\nDaftar Dokter di Poli $selectedPoli:");
-  for (int i = 0; i < dokterList.length; i++) {
-    print("${i + 1}. ${dokterList[i]}");
+  print("\n👨‍⚕️ Daftar Dokter di Poli $selectedPoli:");
+  final dokterTable = List.generate(
+    dokterList.length,
+    (i) => [i + 1, dokterList[i]],
+  );
+  TableRenderer(['No', 'Dokter'], dokterTable).printTable();
+
+  stdout.write("Pilih Dokter [1-${dokterList.length}]: ");
+  int dokterIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (dokterIndex < 1 || dokterIndex > dokterList.length) {
+    print("Pilihan tidak valid.");
+    return;
   }
+  String selectedDokter = dokterList[dokterIndex - 1];
 
-  stdout.write("Pilih Dokter: ");
-  int dokterIndex = int.parse(stdin.readLineSync()!) - 1;
-  String selectedDokter = dokterList[dokterIndex];
-
-  // JADWAL
-  print("\nDaftar Jadwal:");
   if (data.jadwal.isEmpty) {
     print("Tidak ada jadwal untuk $selectedDokter.");
     return;
   }
 
-  for (int i = 0; i < data.jadwal.length; i++) {
-    print("${i + 1}. ${data.jadwal[i]}");
-  }
-
-  stdout.write("Pilih Jadwal: ");
-  int jadwalIndex = int.parse(stdin.readLineSync()!) - 1;
-  String selectedJadwal = data.jadwal[jadwalIndex];
-
-  String nomorAntrean = _generateNomorAntrean();
-  String tanggalDaftar = DateFormat("dd MMMM yyyy").format(DateTime.now());
-
-  // Gunakan konfirmasi rekap
-  bool lanjut = konfirmasiRekap({
-    'Nama Pasien': pasien.nama,
-    'Poli': selectedPoli,
-    'Dokter': selectedDokter,
-    'Jadwal': selectedJadwal,
-    'Nomor Antrean': nomorAntrean,
-    'Tanggal Daftar': tanggalDaftar,
+  print("\n⏰ Daftar Jadwal:");
+  final jadwalTampil = List.generate(data.jadwal.length, (i) {
+    final j = data.jadwal[i];
+    return [i + 1, formatTanggal(j.tanggal), j.jam];
   });
+  TableRenderer(['No', 'Tanggal', 'Jam'], jadwalTampil).printTable();
+
+  stdout.write("Pilih Jadwal [1-${data.jadwal.length}]: ");
+  int jadwalIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
+  if (jadwalIndex < 1 || jadwalIndex > data.jadwal.length) {
+    print("Pilihan tidak valid.");
+    return;
+  }
+  JadwalDokter selectedJadwal = data.jadwal[jadwalIndex - 1];
+
+  final now = DateTime.now();
+  String nomorAntrean = _generateNomorAntrean();
+  String formattedJadwal = formatJadwal({
+    'tanggal': selectedJadwal.tanggal.toIso8601String().split('T')[0],
+    'jam': selectedJadwal.jam,
+  });
+  String tampilTglDaftar = formatTanggal(now);
+
+  print("\n📋 Konfirmasi Pendaftaran:");
+  List<String> headers = [
+    'ID',
+    'Nama',
+    'NIK',
+    'Poli',
+    'Dokter',
+    'Jadwal',
+    'No. Antrean',
+    'Tgl Daftar',
+  ];
+  List<dynamic> values = [
+    pasien.id,
+    pasien.nama,
+    pasien.nik,
+    selectedPoli,
+    selectedDokter,
+    formattedJadwal,
+    nomorAntrean,
+    tampilTglDaftar,
+  ];
+  TableRenderer(headers, [values]).printTable();
+
+  stdout.write("\nApakah semua data sudah benar? (y/n): ");
+  String? konfirmasi = stdin.readLineSync();
+  bool lanjut = konfirmasi?.toLowerCase() == 'y';
 
   if (!lanjut) {
     print("❌ Antrean tidak disimpan.");
@@ -95,9 +132,12 @@ void pendaftaranDanPenjadwalan() {
     'nik': pasien.nik,
     'poli': selectedPoli,
     'dokter': selectedDokter,
-    'jadwal': selectedJadwal,
+    'jadwal': {
+      'tanggal': selectedJadwal.tanggal.toIso8601String().split('T')[0],
+      'jam': selectedJadwal.jam,
+    },
     'nomorAntrean': nomorAntrean,
-    'tanggalDaftar': tanggalDaftar,
+    'tanggalDaftar': now.toIso8601String().split('T')[0],
   });
 
   _savePendaftaranData(daftar);
@@ -121,27 +161,31 @@ void lihatDaftarAntrean() {
     }
 
     List<List<dynamic>> rows = rawData.map((entry) {
+      final jadwalStr = formatJadwal(entry['jadwal']);
+      final tglDaftar = formatTanggal(entry['tanggalDaftar']);
+
       return [
         entry['nomorAntrean'],
-        entry['tanggalDaftar'] ?? '-',
+        entry['pasienId'],
         entry['nama'],
+        entry['nik'],
         entry['poli'],
         entry['dokter'],
-        entry['jadwal'],
+        jadwalStr,
+        tglDaftar,
       ];
     }).toList();
 
-    TableRenderer table = TableRenderer([
-      'Nomor',
-      'Tanggal',
+    TableRenderer([
+      'Nomor Antrean',
+      'ID Pasien',
       'Nama',
+      'NIK',
       'Poli',
       'Dokter',
-      'Jadwal',
-    ], rows);
-
-    print("\n📋 Daftar Antrean Pasien:");
-    table.printTable();
+      'Jadwal Periksa',
+      'Tanggal Daftar',
+    ], rows).printTable();
   } catch (e) {
     print("Gagal memuat antrean: $e");
   }
