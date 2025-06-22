@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-/// Format tanggal menjadi bentuk '21 Juni 2025'
+/// Format tanggal menjadi bentuk 'dd MMMM yyyy'
 String formatTanggal(dynamic tgl) {
   if (tgl == null) return "-";
 

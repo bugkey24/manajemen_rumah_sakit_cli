@@ -28,7 +28,7 @@ String formatJadwal(dynamic jadwal) {
 
 void menuRiwayatPasien() {
   while (true) {
-    print("\n=== Menu Riwayat Pasien ===");
+    print("\n=== MENU RIWAYAT PASIEN ===");
     print("1. Lihat Pendaftaran & Jadwal (Urut Tanggal)");
     print("2. Lihat Hasil Konsultasi");
     print("3. Lihat Riwayat Tagihan");
@@ -57,7 +57,7 @@ void menuRiwayatPasien() {
 }
 
 void cariPendaftaran() {
-  stdout.write("Masukkan NIK atau ID Pasien: ");
+  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -78,7 +78,7 @@ void cariPendaftaran() {
       .toList();
 
   if (hasil.isEmpty) {
-    print("Tidak ditemukan pendaftaran untuk pasien tersebut.");
+    print("Tidak ditemukan pendaftaran untuk pasien tersebut ❌");
   } else {
     hasil.sort((a, b) {
       DateTime tglA =
@@ -106,13 +106,13 @@ void cariPendaftaran() {
       'Antrean',
     ], rows);
 
-    print("\n📌 Riwayat Pendaftaran & Jadwal (Urut Terbaru):");
+    print("\n📌 Riwayat Pendaftaran & Jadwal (Urut Terbaru) :");
     table.printTable();
   }
 }
 
 void cariKonsultasi() {
-  stdout.write("Masukkan NIK atau ID Pasien: ");
+  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -125,7 +125,7 @@ void cariKonsultasi() {
       .toList();
 
   if (rekam.isEmpty) {
-    print("Belum ada hasil konsultasi untuk pasien ini.");
+    print("Belum ada hasil konsultasi untuk pasien ini ❌");
   } else {
     rekam.sort((a, b) => b.tanggal.compareTo(a.tanggal));
 
@@ -149,13 +149,13 @@ void cariKonsultasi() {
       'Tindakan Medis',
     ], rows);
 
-    print("\n📋 Riwayat Hasil Konsultasi:");
+    print("\n📋 Riwayat Hasil Konsultasi :");
     tableRenderer.printTable();
   }
 }
 
 void cariTagihan() {
-  stdout.write("Masukkan NIK atau ID Pasien: ");
+  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -165,7 +165,7 @@ void cariTagihan() {
 
   final file = File('data/tagihan_data.json');
   if (!file.existsSync()) {
-    print("Belum ada riwayat tagihan.");
+    print("Belum ada riwayat tagihan ❌");
     return;
   }
 
@@ -176,7 +176,7 @@ void cariTagihan() {
       .toList();
 
   if (hasil.isEmpty) {
-    print("Tidak ditemukan tagihan untuk pasien ini.");
+    print("Tidak ditemukan tagihan untuk pasien ini ❌");
   } else {
     List<List<dynamic>> rows = hasil.map((e) {
       return [
@@ -194,7 +194,7 @@ void cariTagihan() {
       'Total',
     ], rows);
 
-    print("\n💳 Riwayat Tagihan:");
+    print("\n💳 Riwayat Tagihan :");
     tableRenderer.printTable();
   }
 }
@@ -202,7 +202,7 @@ void cariTagihan() {
 void lihatRiwayatPerPoli() {
   final file = File('data/pendaftaran_data.json');
   if (!file.existsSync()) {
-    print("Belum ada data pendaftaran.");
+    print("Belum ada data pendaftaran ❌");
     return;
   }
 

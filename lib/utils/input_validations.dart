@@ -8,6 +8,6 @@ int readIntInRange(String prompt, int min, int max) {
     if (value != null && value >= min && value <= max) {
       return value;
     }
-    print("Input tidak valid. Harap masukkan angka $min hingga $max.");
+    print("Input tidak valid ❌ Harap masukkan angka $min hingga $max.");
   }
 }

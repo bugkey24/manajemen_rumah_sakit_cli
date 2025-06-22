@@ -86,52 +86,52 @@ void tambahDataPasien() {
   List<Pasien> pasienList = loadPasienData();
   Set<String> nikSet = pasienList.map((p) => p.nik).toSet();
 
-  stdout.write("Masukkan NIK Pasien: ");
+  stdout.write("🪪 Masukkan NIK Pasien : ");
   String? nik = stdin.readLineSync();
   if (nik == null || nik.trim().isEmpty) {
-    print("NIK tidak boleh kosong.");
+    print("NIK tidak boleh kosong ⚠️");
     return;
   }
   if (nikSet.contains(nik)) {
-    print("NIK sudah terdaftar. Tambah pasien dibatalkan.");
+    print("NIK sudah terdaftar. Tambah pasien dibatalkan ⛔");
     return;
   }
 
   String id = 'P${(pasienList.length + 1).toString().padLeft(4, '0')}';
 
-  stdout.write("Masukkan Nama Pasien: ");
+  stdout.write("Masukkan Nama Pasien : ");
   String? nama = stdin.readLineSync();
   if (nama == null || nama.trim().isEmpty) {
-    print("Nama tidak boleh kosong.");
+    print("Nama tidak boleh kosong ⚠️");
     return;
   }
 
-  stdout.write("Masukkan Umur Pasien: ");
+  stdout.write("Masukkan Umur Pasien : ");
   int? umur = int.tryParse(stdin.readLineSync() ?? '');
   if (umur == null || umur <= 0) {
-    print("Umur tidak valid.");
+    print("Umur tidak valid ❌");
     return;
   }
 
-  stdout.write("Masukkan Jenis Kelamin (L/P): ");
+  stdout.write("Masukkan Jenis Kelamin (L/P) : ");
   String? genderInput = stdin.readLineSync();
   JenisKelamin? jenisKelamin = JenisKelaminExtension.fromInput(genderInput ?? '');
   if (jenisKelamin == null) {
-    print("Jenis kelamin tidak valid. Gunakan L untuk Laki-laki atau P untuk Perempuan.");
+    print("Jenis kelamin tidak valid. Gunakan L untuk Laki-laki atau P untuk Perempuan ⚠️");
     return;
   }
 
-  stdout.write("Masukkan No Handphone: ");
+  stdout.write("Masukkan No Handphone : ");
   String? noHandphone = stdin.readLineSync();
   if (noHandphone == null || noHandphone.trim().isEmpty) {
-    print("Nomor handphone tidak boleh kosong.");
+    print("Nomor handphone tidak boleh kosong ⚠️");
     return;
   }
 
-  stdout.write("Masukkan Alamat: ");
+  stdout.write("Masukkan Alamat : ");
   String? alamat = stdin.readLineSync();
   if (alamat == null || alamat.trim().isEmpty) {
-    print("Alamat tidak boleh kosong.");
+    print("Alamat tidak boleh kosong ⚠️");
     return;
   }
 
@@ -148,15 +148,15 @@ void tambahDataPasien() {
   pasienList.add(pasien);
   _savePasienData(pasienList);
 
-  print('✅ Data pasien ${pasien.nama} berhasil disimpan dengan ID $id.');
-  print('📋 Total pasien saat ini: ${pasienList.length}');
+  print('Data pasien ${pasien.nama} berhasil disimpan dengan NIK : $nik dan ID : $id ✅');
+  print('📋 Total pasien saat ini : ${pasienList.length}');
 }
 
 void cariPasien() {
-  stdout.write("Masukkan NIK atau ID Pasien: ");
+  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) {
-    print("Input tidak boleh kosong.");
+    print("Input tidak boleh kosong ⚠️");
     return;
   }
 
@@ -189,17 +189,17 @@ void cariPasien() {
       'Alamat',
     ], row);
 
-    print("\n📌 Data Pasien Ditemukan:\n");
+    print("\n📌 Data Pasien Ditemukan :\n");
     tableRenderer.printTable();
   } else {
-    print("❌ Pasien dengan NIK/ID $input tidak ditemukan.");
+    print("Pasien dengan NIK/ID : $input tidak ditemukan ❌");
   }
 }
 
 void lihatDaftarPasien() {
   List<Pasien> pasienList = loadPasienData();
   if (pasienList.isEmpty) {
-    print("Belum ada data pasien.");
+    print("Data pasien masih kosong ❌");
     return;
   }
 
@@ -238,6 +238,6 @@ void lihatDaftarPasien() {
     'Jenis Kelamin',
   ], rows);
 
-  print("\n📋 Daftar Pasien:");
+  print("\n📋 Daftar Pasien :");
   tableRenderer.printTable();
 }

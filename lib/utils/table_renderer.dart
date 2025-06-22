@@ -7,7 +7,7 @@ class TableRenderer {
   void printTable() {
     final columnWidths = List<int>.from(headers.map((h) => h.length));
 
-    // Hitung lebar tiap kolom berdasarkan data
+    // Menghitung lebar tiap kolom berdasarkan data
     for (var row in rows) {
       for (var i = 0; i < row.length; i++) {
         final cell = row[i]?.toString() ?? '-';

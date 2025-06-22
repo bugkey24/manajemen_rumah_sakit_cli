@@ -6,13 +6,13 @@ Aplikasi Command-Line Interface (CLI) berbasis Dart untuk mengelola operasional 
 
 ## 📦 Fitur Utama
 
-- 👤 **Data Pasien**: Tambah, cari, dan lihat daftar pasien
-- 📝 **Pendaftaran & Jadwal**: Antrean per poli dan dokter
-- 🩺 **Rekam Medis**: Diagnosis, resep, dan tindakan medis
-- 💳 **Tagihan**: Hitung biaya layanan dan obat, proses pelunasan
-- 📊 **Laporan**: Ringkasan harian, mingguan, dan per pasien
-- 🔎 **Riwayat Pasien**: Gabungan histori konsultasi & pembayaran
-- ✅ **Validasi Interaktif**: Konfirmasi dua langkah saat input
+- 👤 **Data Pasien** : Tambah, cari dan lihat daftar pasien
+- 📝 **Pendaftaran & Jadwal** : Antrean per poli dan dokter
+- 🩺 **Rekam Medis**: Diagnosis, resep dan tindakan medis
+- 💳 **Tagihan** : Hitung biaya layanan dan obat, proses pelunasan
+- 📊 **Laporan** : Ringkasan harian, mingguan dan per pasien
+- 🔎 **Riwayat Pasien** : Gabungan histori konsultasi & pembayaran
+- ✅ **Validasi Interaktif** : Konfirmasi dua langkah saat input
 
 ---
 
@@ -21,7 +21,7 @@ Aplikasi Command-Line Interface (CLI) berbasis Dart untuk mengelola operasional 
 ### 1. Persiapan
 
 - Install [Dart SDK](https://dart.dev/get-dart) minimal versi **3.0**
-- OS: Windows / Linux / macOS
+- OS : Windows / Linux / macOS
 
 ### 2. Clone dan jalankan
 
@@ -39,15 +39,20 @@ dart run bin/main.dart
 bin/
   main.dart                   # Titik masuk aplikasi CLI
 lib/
+  billing.dart
+  consultation_result.dart
+  doctor_availability.dart
+  history_lookup.dart
   patient_management.dart
   queue_and_schedule.dart
-  consultation_result.dart
-  billing.dart
-  history_lookup.dart
   utils/
-    table_renderer.dart
-    input_validations.dart
+    clear_console.dart
     confirmation_helper.dart
+    formatting.dart
+    input_validations.dart
+    jadwal_generator.dart
+    print_slow.dart
+    table_renderer.dart
 data/
   pasien_data.json
   tagihan_data.json
@@ -61,16 +66,18 @@ data/
 ## 🧠 OOP & Struktur Data
 
 ### ✅ OOP
+
 - Class modular: `Pasien`, `Tagihan`, `RekamMedis`
 - `factory fromJson()` untuk parsing JSON
 - Modul pemisah antar domain (pasien, billing, antrean)
 
 ### ✅ Struktur Data
-- **List**: Menyimpan entitas dinamis (pasien, tagihan, dll)
-- **Set**: Menjamin keunikan (NIK, ID)
-- **Map**: Lookup cepat (ID → data pasien)
-- **Sort & filter**: Untuk laporan dan pencarian
-- **JSON**: Penyimpanan data lokal
+
+- **List** : Menyimpan entitas dinamis (pasien, tagihan, dll)
+- **Set** : Menjamin keunikan (NIK, ID)
+- **Map** : Lookup cepat (ID → data pasien)
+- **Sort & filter** : Untuk laporan dan pencarian
+- **JSON** : Penyimpanan data lokal
 
 ---
 
@@ -105,13 +112,13 @@ data/
 
 ## 👤 Kontributor
 
-- **Nama**: Dida  
-- **Bahasa**: Dart  
-- **Peran**: Arsitek sistem & pengembang CLI modular
+- **Nama** : Dida
+- **Bahasa** : Dart
+- **Peran** : Arsitek sistem & pengembang CLI modular
 
 ---
 
 ## 📄 Lisensi
 
 Proyek ini open-source untuk kebutuhan edukasi dan pengembangan non-komersial.  
-Silakan fork, gunakan, dan sesuaikan sesuai kebutuhan pembelajaranmu.
+Silakan fork, gunakan dan sesuaikan sesuai kebutuhan pembelajaranmu.

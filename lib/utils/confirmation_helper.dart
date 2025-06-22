@@ -9,11 +9,11 @@ Pasien? cariDanKonfirmasiPasien(String input, List<Pasien> pasienList) {
 
   final Pasien? pasien = byId[input] ?? byNik[input];
   if (pasien == null) {
-    print("❌ Pasien dengan NIK/ID '$input' tidak ditemukan.");
+    print("Pasien dengan NIK/ID '$input' tidak ditemukan ❌");
     return null;
   }
 
-  print("\n📌 Konfirmasi Data Pasien:");
+  print("\n📌 Konfirmasi Data Pasien :");
 
   List<String> headers = ['ID', 'Nama', 'NIK', 'Umur', 'JK', 'HP', 'Alamat'];
   List<dynamic> values = [
@@ -28,10 +28,10 @@ Pasien? cariDanKonfirmasiPasien(String input, List<Pasien> pasienList) {
 
   TableRenderer(headers, [values]).printTable();
 
-  stdout.write("\nApakah data pasien sudah sesuai? (y/n): ");
+  stdout.write("\nApakah data pasien sudah sesuai? (y/n) : ");
   String? konfirmasi = stdin.readLineSync();
   if (konfirmasi?.toLowerCase() != 'y') {
-    print("⏹️ Proses dibatalkan.");
+    print("Proses dibatalkan ⏹️");
     return null;
   }
 
@@ -40,21 +40,21 @@ Pasien? cariDanKonfirmasiPasien(String input, List<Pasien> pasienList) {
 
 /// Menampilkan rekap data sebagai konfirmasi akhir
 bool konfirmasiRekap(Map<String, String> data) {
-  print("\n📋 Konfirmasi Data:");
+  print("\n📋 Konfirmasi Data :");
 
   final headers = data.keys.toList();
   final values = data.values.toList();
 
   TableRenderer(headers, [values]).printTable();
 
-  stdout.write("\nApakah semua data sudah benar? (y/n): ");
+  stdout.write("\nApakah semua data sudah sesuai? (y/n) : ");
   String? confirm = stdin.readLineSync();
   return confirm?.toLowerCase() == 'y';
 }
 
 /// Konfirmasi keluar sistem
 bool konfirmasiKeluar() {
-  stdout.write("Apakah Anda yakin ingin keluar? (y/n): ");
+  stdout.write("Apakah Anda yakin ingin keluar? (y/n) : ");
   final input = stdin.readLineSync();
   return input?.toLowerCase() == 'y';
 }

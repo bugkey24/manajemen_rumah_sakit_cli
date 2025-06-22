@@ -53,7 +53,7 @@ class RekamMedis {
 void inputHasilKonsultasi() {
   List<Pasien> pasienList = loadPasienData();
 
-  stdout.write("Masukkan NIK atau ID Pasien: ");
+  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -64,7 +64,7 @@ void inputHasilKonsultasi() {
   final pendaftaran = _cariPendaftaranTerakhir(pasien);
   if (pendaftaran == null) {
     print(
-      "⚠️ Pasien belum pernah terdaftar. Tidak dapat mencatat hasil konsultasi.",
+      "Pasien belum pernah terdaftar. Tidak dapat mencatat hasil konsultasi ❌",
     );
     return;
   }
@@ -74,15 +74,15 @@ void inputHasilKonsultasi() {
   DateTime tanggalKonsultasi =
       DateTime.tryParse(jadwal?['tanggal'] ?? '') ?? DateTime.now();
 
-  stdout.write("Masukkan Diagnosis: ");
+  stdout.write("Masukkan Diagnosis : ");
   String? diagnosis = stdin.readLineSync();
-  stdout.write("Masukkan Resep Obat: ");
+  stdout.write("Masukkan Resep Obat : ");
   String? resep = stdin.readLineSync();
-  stdout.write("Masukkan Tindakan Medis: ");
+  stdout.write("Masukkan Tindakan Medis : ");
   String? tindakan = stdin.readLineSync();
 
   if ([diagnosis, resep, tindakan].any((e) => e == null || e.trim().isEmpty)) {
-    print("❗ Data konsultasi tidak valid. Harap isi semua informasi.");
+    print("Data konsultasi tidak valid. Harap isi semua informasi ⚠️");
     return;
   }
 
@@ -96,7 +96,7 @@ void inputHasilKonsultasi() {
   });
 
   if (!lanjut) {
-    print("🚫 Penyimpanan rekam medis dibatalkan.");
+    print("Penyimpanan rekam medis dibatalkan 🚫");
     return;
   }
 
@@ -112,7 +112,7 @@ void inputHasilKonsultasi() {
   );
 
   _saveRekamMedisData(rekamMedis);
-  print("✅ Rekam medis berhasil disimpan untuk pasien ${pasien.nama}.");
+  print("Rekam medis berhasil disimpan untuk pasien ${pasien.nama} dengan nik ${pasien.nik} ✅");
 }
 
 Map<String, dynamic>? _cariPendaftaranTerakhir(Pasien pasien) {
@@ -143,7 +143,7 @@ Map<String, dynamic>? _cariPendaftaranTerakhir(Pasien pasien) {
 void tampilkanSemuaRekamMedis() {
   List<RekamMedis> daftar = loadRekamMedisData();
   if (daftar.isEmpty) {
-    print("Belum ada data rekam medis yang tersimpan.");
+    print("Belum ada data rekam medis yang tersimpan ❌");
     return;
   }
 
@@ -174,7 +174,7 @@ void tampilkanSemuaRekamMedis() {
 void lihatRekamMedisPerDiagnosis() {
   List<RekamMedis> daftar = loadRekamMedisData();
   if (daftar.isEmpty) {
-    print("Belum ada data rekam medis.");
+    print("Belum ada data rekam medis ❌");
     return;
   }
 
@@ -186,7 +186,7 @@ void lihatRekamMedisPerDiagnosis() {
   final formatter = DateFormat('dd-MM-yyyy');
 
   for (var entry in grup.entries) {
-    print("\n🧾 Diagnosis: ${entry.key}");
+    print("\n🧾 Diagnosis : ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((rekam) {
       return [
         formatter.format(rekam.tanggal),

@@ -31,14 +31,14 @@ void main() {
     print("  6. Input Hasil Konsultasi");
     print("  7. Lihat Semua Rekam Medis (Urut Nama)");
     print("  8. Lihat Rekam Medis per Diagnosis");
-    print("  9. Lihat Riwayat Pasien (Gabungan)");
+    print("  9. Lihat Riwayat Pasien (Gabungan)"); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
 
     // 💳 MANAJEMEN TAGIHAN
     print("\n💳 MANAJEMEN TAGIHAN");
     print(" 10. Tambah Tagihan");
     print(" 11. Lihat Semua Tagihan (Urut Nama)");
     print(" 12. Proses Pembayaran");
-    print(" 13. Lihat Laporan Tagihan"); // ⬅ Disatukan dan diganti label
+    print(" 13. Lihat Laporan Tagihan"); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
 
     // 📊 LAPORAN PEMBAYARAN
     print("\n📊 LAPORAN PEMBAYARAN");
@@ -92,7 +92,7 @@ void main() {
         prosesPembayaran();
         break;
       case 13:
-        menuLihatTagihan(); // ⬅ pusat kendali tagihan
+        menuLihatTagihan(); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
         break;
       case 14:
         laporanHarian();

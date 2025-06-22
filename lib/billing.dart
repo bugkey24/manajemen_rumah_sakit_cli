@@ -286,7 +286,7 @@ void prosesPembayaran() {
 
 void menuLihatTagihan() {
   while (true) {
-    print("\n📋 Pilih Jenis Tagihan yang Ingin Ditampilkan:");
+    print("\n📋 Pilih Jenis Tagihan yang Ingin Ditampilkan :");
     print("1. Semua Tagihan");
     print("2. Tagihan Belum Dibayar");
     print("3. Tagihan Sudah Dibayar");
@@ -319,7 +319,7 @@ void menuLihatTagihan() {
 void lihatSemuaTagihan() {
   List<Tagihan> data = loadTagihan();
   if (data.isEmpty) {
-    print("Belum ada data tagihan.");
+    print("Belum ada data tagihan ❌");
     return;
   }
 
@@ -327,27 +327,27 @@ void lihatSemuaTagihan() {
 
   List<List<dynamic>> rows = data.map((e) {
     return [
-      formatTanggal(e.tanggal),
       e.pasienId,
       e.nama,
       formatCurrency(e.biayaKonsultasi),
       formatCurrency(e.biayaObat),
       formatCurrency(e.totalTagihan),
       e.sudahDibayar ? 'Lunas' : 'Belum',
+      formatTanggal(e.tanggal),
     ];
   }).toList();
 
   TableRenderer table = TableRenderer([
-    'Tanggal',
     'ID',
     'Nama',
     'Konsultasi',
     'Obat',
-    'Total',
-    'Status',
+    'Total Tagihan',
+    'Status Tagihan',
+    'Tanggal',
   ], rows);
 
-  print("\n📋 Daftar Semua Tagihan (Urut Nama):");
+  print("\n📋 Daftar Semua Tagihan (Urut Nama) :");
   table.printTable();
 }
 
@@ -355,11 +355,11 @@ void lihatTagihanBelumDibayar() {
   List<Tagihan> data = loadTagihan().where((e) => !e.sudahDibayar).toList();
 
   if (data.isEmpty) {
-    print("🎉 Semua tagihan telah dibayar. Tidak ada tagihan aktif.");
+    print("Semua tagihan telah dibayar. Tidak ada tagihan aktif ✅");
     return;
   }
 
-  print("\n📌 Tagihan Belum Dibayar:");
+  print("\n📌 Tagihan Belum Dibayar :");
   List<List<dynamic>> rows = data
       .map(
         (e) => [
@@ -377,7 +377,7 @@ void lihatTagihanBelumDibayar() {
     'Nama',
     'Konsultasi',
     'Obat',
-    'Total',
+    'Total Tagihan',
   ], rows);
 
   table.printTable();
@@ -387,11 +387,11 @@ void lihatTagihanSudahDibayar() {
   List<Tagihan> data = loadTagihan().where((e) => e.sudahDibayar).toList();
 
   if (data.isEmpty) {
-    print("📭 Belum ada tagihan yang lunas.");
+    print("Belum ada tagihan yang lunas 📭");
     return;
   }
 
-  print("\n📦 Tagihan yang Sudah Dibayar:");
+  print("\n📦 Tagihan yang Sudah Dibayar :");
   List<List<dynamic>> rows = data
       .map(
         (e) => [
@@ -409,7 +409,7 @@ void lihatTagihanSudahDibayar() {
     'Nama',
     'Konsultasi',
     'Obat',
-    'Total',
+    'Total Tagihan',
   ], rows);
 
   table.printTable();
@@ -422,7 +422,7 @@ void tampilkanPasienYangDitagih() {
 
   if (tagihanAktif.isEmpty) {
     print(
-      "🎉 Tidak ada pasien dengan tagihan aktif. Semua tagihan telah dibayar!",
+      "Tidak ada pasien dengan tagihan aktif. Semua tagihan telah dibayarkan ✅",
     );
     return;
   }
@@ -449,17 +449,19 @@ void tampilkanPasienYangDitagih() {
       pasien.nik,
       pasien.jenisKelamin.label,
       pasien.umur,
+      pasien.alamat,
       pasien.noHandphone,
     ];
   }).toList();
 
-  print("\n📌 Pasien dengan Tagihan Belum Lunas:");
+  print("\n📌 Pasien dengan Tagihan Belum Lunas :");
   TableRenderer table = TableRenderer([
     'ID',
     'Nama',
     'NIK',
     'JK',
     'Umur',
+    'Alamat',
     'No HP',
   ], rows);
   table.printTable();
@@ -480,7 +482,7 @@ List<Tagihan> loadTagihan() {
     final List<dynamic> jsonList = jsonDecode(jsonStr);
     return jsonList.map((e) => Tagihan.fromJson(e)).toList();
   } catch (e) {
-    print("❌ Gagal membaca data tagihan: $e");
+    print("Gagal membaca data tagihan : $e ❌");
     return [];
   }
 }
