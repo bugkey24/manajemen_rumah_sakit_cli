@@ -1,9 +1,13 @@
-import 'dart:io';
+/// library
+import 'dart:io' show Platform, stdout;
 
 void clearConsole() {
+  // Memeriksa apakah sistem operasi adalah Windows
   if (Platform.isWindows) {
-    stdout.write('\x1B[2J\x1B[0;0H'); // Untuk Windows
+    // Jika Windows, gunakan escape sequence untuk membersihkan layar
+    stdout.write('\x1B[2J\x1B[0;0H');
   } else {
-    stdout.write('\x1B[2J\x1B[H'); // Untuk Unix/Mac/Linux
+    // Jika sistem operasi adalah Unix, Mac, atau Linux, gunakan escape sequence yang berbeda
+    stdout.write('\x1B[2J\x1B[H');
   }
 }

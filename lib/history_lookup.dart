@@ -1,24 +1,25 @@
+// library
 import 'dart:io' show File, stdin, stdout;
 import 'dart:convert' show jsonDecode;
 
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
-import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
+// Modul
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart' show Pasien, loadPasienData;
+import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart' show loadRekamMedisData;
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart' show TableRenderer;
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart' show cariDanKonfirmasiPasien;
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart' show readIntInRange;
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart' show formatTanggal;
 
+/// Fungsi untuk memformat jadwal, mengubah objek jadwal menjadi string dengan format yang benar
 String formatJadwal(dynamic jadwal) {
   if (jadwal is String && jadwal.trim().isNotEmpty) return jadwal;
 
-  if (jadwal is Map &&
-      jadwal.containsKey('tanggal') &&
-      jadwal.containsKey('jam')) {
+  if (jadwal is Map && jadwal.containsKey('tanggal') && jadwal.containsKey('jam')) {
     try {
-      final tgl = DateTime.tryParse(jadwal['tanggal']);
+      final tgl = DateTime.tryParse(jadwal['tanggal']); // Mengonversi tanggal menjadi objek DateTime
       final jam = jadwal['jam']?.toString() ?? '-';
       if (tgl != null) {
-        return "${formatTanggal(tgl)} - $jam";
+        return "${formatTanggal(tgl)} - $jam"; // Menggabungkan tanggal dan jam dengan format yang sesuai
       }
     } catch (_) {}
   }
@@ -26,15 +27,17 @@ String formatJadwal(dynamic jadwal) {
   return "-";
 }
 
+/// Menu utama untuk melihat riwayat pasien
 void menuRiwayatPasien() {
   while (true) {
+    // Menampilkan pilihan menu untuk riwayat pasien
     print("\n=== MENU RIWAYAT PASIEN ===");
     print("1. Lihat Pendaftaran & Jadwal (Urut Tanggal)");
     print("2. Lihat Hasil Konsultasi");
     print("3. Lihat Riwayat Tagihan");
     print("4. Lihat Riwayat per Poli");
     print("5. Kembali ke menu utama");
-    int pilihan = readIntInRange("Pilih menu utama", 1, 5);
+    int pilihan = readIntInRange("Pilih menu utama", 1, 5); // Meminta input pilihan menu
 
     switch (pilihan) {
       case 1:
@@ -56,8 +59,9 @@ void menuRiwayatPasien() {
   }
 }
 
+/// Fungsi untuk mencari dan menampilkan riwayat pendaftaran pasien
 void cariPendaftaran() {
-  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
+  stdout.write("🪪  Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -81,19 +85,17 @@ void cariPendaftaran() {
     print("Tidak ditemukan pendaftaran untuk pasien tersebut ❌");
   } else {
     hasil.sort((a, b) {
-      DateTime tglA =
-          DateTime.tryParse(a['tanggalDaftar'] ?? '') ?? DateTime(1900);
-      DateTime tglB =
-          DateTime.tryParse(b['tanggalDaftar'] ?? '') ?? DateTime(1900);
-      return tglB.compareTo(tglA);
+      DateTime tglA = DateTime.tryParse(a['tanggalDaftar'] ?? '') ?? DateTime(1900);
+      DateTime tglB = DateTime.tryParse(b['tanggalDaftar'] ?? '') ?? DateTime(1900);
+      return tglB.compareTo(tglA); // Mengurutkan berdasarkan tanggal pendaftaran terbaru
     });
 
     List<List<dynamic>> rows = hasil.map((p) {
       return [
-        formatTanggal(p['tanggalDaftar']),
+        formatTanggal(p['tanggalDaftar']), // Memformat tanggal pendaftaran
         p['poli'] ?? '-',
         p['dokter'] ?? '-',
-        formatJadwal(p['jadwal']),
+        formatJadwal(p['jadwal']), // Memformat jadwal
         p['nomorAntrean'] ?? '-',
       ];
     }).toList();
@@ -111,8 +113,9 @@ void cariPendaftaran() {
   }
 }
 
+/// Fungsi untuk mencari dan menampilkan hasil konsultasi pasien
 void cariKonsultasi() {
-  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
+  stdout.write("🪪  Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -127,12 +130,12 @@ void cariKonsultasi() {
   if (rekam.isEmpty) {
     print("Belum ada hasil konsultasi untuk pasien ini ❌");
   } else {
-    rekam.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+    rekam.sort((a, b) => b.tanggal.compareTo(a.tanggal)); // Mengurutkan berdasarkan tanggal konsultasi terbaru
 
     List<List<dynamic>> rows = rekam
         .map(
           (r) => [
-            formatTanggal(r.tanggal),
+            formatTanggal(r.tanggal), // Memformat tanggal konsultasi
             r.dokter,
             r.diagnosis,
             r.resepObat,
@@ -154,8 +157,9 @@ void cariKonsultasi() {
   }
 }
 
+/// Fungsi untuk mencari dan menampilkan riwayat tagihan pasien
 void cariTagihan() {
-  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
+  stdout.write("🪪  Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
@@ -188,7 +192,6 @@ void cariTagihan() {
     }).toList();
 
     TableRenderer tableRenderer = TableRenderer([
-      'Tanggal',
       'Konsultasi',
       'Obat',
       'Total',
@@ -199,6 +202,7 @@ void cariTagihan() {
   }
 }
 
+/// Fungsi untuk melihat riwayat pendaftaran pasien per poli
 void lihatRiwayatPerPoli() {
   final file = File('data/pendaftaran_data.json');
   if (!file.existsSync()) {
@@ -207,13 +211,14 @@ void lihatRiwayatPerPoli() {
   }
 
   List<dynamic> list = jsonDecode(file.readAsStringSync());
-  Map<String, List<Map<String, dynamic>>> perPoli = {};
+  Map<String, List<Map<String, dynamic>>> perPoli = {}; // Membuat map untuk menyimpan pendaftaran per poli
 
   for (var e in list.cast<Map<String, dynamic>>()) {
-    String poli = e['poli'] ?? 'Lainnya';
-    perPoli.putIfAbsent(poli, () => []).add(e);
+    String poli = e['poli'] ?? 'Lainnya'; // Jika poli tidak tersedia, disimpan sebagai 'Lainnya'
+    perPoli.putIfAbsent(poli, () => []).add(e); // Menambahkan pendaftaran ke map berdasarkan poli
   }
 
+  // Menampilkan riwayat pendaftaran per poli
   for (var entry in perPoli.entries) {
     print("\n🏥 Poli: ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((e) {

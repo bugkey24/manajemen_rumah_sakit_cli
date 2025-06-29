@@ -1,13 +1,18 @@
+/// Library
 import 'dart:io' show File, stdin, stdout;
 import 'dart:convert' show jsonDecode, jsonEncode;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' show DateFormat, NumberFormat;
 
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
+/// Modul
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart' show JenisKelamin, JenisKelaminExtension, Pasien, loadPasienData;
 
+/// Utility
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart' show TableRenderer;
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart' show cariDanKonfirmasiPasien, konfirmasiRekap;
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart' show readIntInRange;
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart' show formatTanggal;
+
+/// Mengubah nominal double menjadi format mata uang Rupiah (Rp)
 String formatCurrency(double amount) {
   final formatter = NumberFormat.currency(
     locale: 'id_ID',
@@ -17,6 +22,7 @@ String formatCurrency(double amount) {
   return formatter.format(amount);
 }
 
+/// Kelas model untuk data Tagihan pasien
 class Tagihan {
   String pasienId;
   String nik;
@@ -27,6 +33,7 @@ class Tagihan {
   String tanggal;
   bool sudahDibayar;
 
+  /// Konstruktor Tagihan
   Tagihan({
     required this.pasienId,
     required this.nik,
@@ -38,6 +45,7 @@ class Tagihan {
     this.sudahDibayar = false,
   });
 
+  /// Konversi objek Tagihan ke Map untuk keperluan JSON
   Map<String, dynamic> toJson() => {
     'pasienId': pasienId,
     'nik': nik,
@@ -49,6 +57,7 @@ class Tagihan {
     'sudahDibayar': sudahDibayar,
   };
 
+  /// Membuat objek Tagihan dari Map (hasil decode JSON)
   static Tagihan fromJson(Map<String, dynamic> json) => Tagihan(
     pasienId: json['pasienId'],
     nik: json['nik'],
@@ -61,6 +70,7 @@ class Tagihan {
   );
 }
 
+/// Membuat tagihan baru untuk pasien berdasarkan input biaya konsultasi dan obat
 void totalTagihan() {
   stdout.write("Masukkan NIK atau ID Pasien: ");
   String? input = stdin.readLineSync();
@@ -79,6 +89,7 @@ void totalTagihan() {
   double total = biayaKonsultasi + biayaObat;
   String tanggal = DateTime.now().toIso8601String().split('T')[0];
 
+  // Konfirmasi sebelum menyimpan tagihan ke file JSON
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': pasien.nama,
     'Tanggal': formatTanggal(DateTime.now()),
@@ -110,6 +121,7 @@ void totalTagihan() {
   print("✅ Tagihan berhasil disimpan untuk ${pasien.nama}.");
 }
 
+/// Menampilkan laporan pembayaran tagihan yang lunas pada hari ini
 void laporanHarian() {
   List<Tagihan> data = loadTagihan();
   String hariIni = DateTime.now().toIso8601String().split('T')[0];
@@ -148,6 +160,7 @@ void laporanHarian() {
   print("💰 Total Pendapatan: ${formatCurrency(total)}");
 }
 
+/// Menampilkan laporan pembayaran tagihan yang lunas selama 7 hari terakhir
 void laporanMingguan() {
   List<Tagihan> data = loadTagihan();
   DateTime sekarang = DateTime.now();
@@ -194,6 +207,7 @@ void laporanMingguan() {
   print("💰 Total Pendapatan 7 Hari Terakhir: ${formatCurrency(total)}");
 }
 
+/// Menampilkan riwayat pembayaran tagihan per pasien
 void laporanPerPasien() {
   List<Tagihan> data = loadTagihan().where((e) => e.sudahDibayar).toList();
 
@@ -202,6 +216,7 @@ void laporanPerPasien() {
     return;
   }
 
+  // Kelompokkan tagihan berdasarkan nama pasien
   Map<String, List<Tagihan>> grup = {};
   for (var tagihan in data) {
     grup.putIfAbsent(tagihan.nama, () => []).add(tagihan);
@@ -228,6 +243,7 @@ void laporanPerPasien() {
   }
 }
 
+/// Memproses pembayaran tagihan yang belum dibayar oleh pasien
 void prosesPembayaran() {
   stdout.write("Masukkan ID atau NIK Pasien yang ingin dibayar: ");
   String? input = stdin.readLineSync();
@@ -266,6 +282,7 @@ void prosesPembayaran() {
 
   Tagihan target = belumBayar[pilihan - 1];
 
+  // Konfirmasi sebelum pembayaran
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': target.nama,
     'Tanggal Tagihan': formatTanggal(target.tanggal),
@@ -284,6 +301,7 @@ void prosesPembayaran() {
   print("✅ Pembayaran tagihan berhasil untuk ${target.nama}.");
 }
 
+/// Menampilkan menu interaktif untuk melihat berbagai jenis tagihan
 void menuLihatTagihan() {
   while (true) {
     print("\n📋 Pilih Jenis Tagihan yang Ingin Ditampilkan :");
@@ -316,6 +334,7 @@ void menuLihatTagihan() {
   }
 }
 
+/// Menampilkan seluruh data tagihan
 void lihatSemuaTagihan() {
   List<Tagihan> data = loadTagihan();
   if (data.isEmpty) {
@@ -351,6 +370,7 @@ void lihatSemuaTagihan() {
   table.printTable();
 }
 
+/// Menampilkan daftar tagihan yang belum dibayar
 void lihatTagihanBelumDibayar() {
   List<Tagihan> data = loadTagihan().where((e) => !e.sudahDibayar).toList();
 
@@ -383,6 +403,7 @@ void lihatTagihanBelumDibayar() {
   table.printTable();
 }
 
+/// Menampilkan daftar tagihan yang sudah dibayar oleh pasien
 void lihatTagihanSudahDibayar() {
   List<Tagihan> data = loadTagihan().where((e) => e.sudahDibayar).toList();
 
@@ -415,6 +436,7 @@ void lihatTagihanSudahDibayar() {
   table.printTable();
 }
 
+/// Menampilkan daftar pasien yang masih memiliki tagihan aktif (belum lunas)
 void tampilkanPasienYangDitagih() {
   List<Tagihan> tagihanAktif = loadTagihan()
       .where((e) => !e.sudahDibayar)
@@ -467,10 +489,12 @@ void tampilkanPasienYangDitagih() {
   table.printTable();
 }
 
+/// Mengembalikan set NIK pasien yang masih memiliki tagihan aktif (belum lunas)
 Set<String> daftarPasienYangDitagih() {
   return loadTagihan().where((e) => !e.sudahDibayar).map((e) => e.nik).toSet();
 }
 
+/// Membaca data tagihan dari file JSON
 List<Tagihan> loadTagihan() {
   final file = File('data/tagihan_data.json');
   if (!file.existsSync()) {
@@ -487,6 +511,7 @@ List<Tagihan> loadTagihan() {
   }
 }
 
+/// Menyimpan data tagihan ke file JSON
 void _simpanTagihan(List<Tagihan> data) {
   final file = File('data/tagihan_data.json');
   final jsonData = data.map((e) => e.toJson()).toList();

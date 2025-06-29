@@ -1,26 +1,32 @@
-import 'dart:io';
-import 'dart:collection';
-import 'dart:convert';
+// library
+import 'dart:io' show File, stdin, stdout;
+import 'dart:collection' show Queue;
+import 'dart:convert' show jsonDecode, jsonEncode;
 
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
-import 'package:manajemen_rumah_sakit_cli_2/doctor_availability.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart';
+// Modul
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart' show Pasien, loadPasienData;
+import 'package:manajemen_rumah_sakit_cli_2/doctor_availability.dart' show DoctorAvailability, JadwalDokter;
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart' show TableRenderer;
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart' show cariDanKonfirmasiPasien;
+import 'package:manajemen_rumah_sakit_cli_2/utils/formatting.dart' show formatJadwal, formatTanggal;
 
+// Queue untuk menyimpan antrean pasien
 Queue<Pasien> antreanPasien = Queue<Pasien>();
 
+// Fungsi untuk melakukan pendaftaran pasien dan penjadwalan
 void pendaftaranDanPenjadwalan() {
-  final data = DoctorAvailability();
-  List<Pasien> pasienList = loadPasienData();
+  final data = DoctorAvailability(); // Mengambil ketersediaan dokter
+  List<Pasien> pasienList = loadPasienData(); // Memuat data pasien
 
-  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
+  // Meminta input NIK atau ID Pasien
+  stdout.write("🪪  Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) {
     print("Input tidak valid ❌");
     return;
   }
 
+  // Mencari pasien berdasarkan input NIK atau ID
   Pasien? pasien = cariDanKonfirmasiPasien(input.trim(), pasienList);
   if (pasien == null) return;
 
@@ -29,6 +35,7 @@ void pendaftaranDanPenjadwalan() {
     return;
   }
 
+  // Menampilkan daftar poli yang tersedia
   print("\n🏥 Daftar Poli :");
   final poliTable = List.generate(
     data.poli.length,
@@ -36,6 +43,7 @@ void pendaftaranDanPenjadwalan() {
   );
   TableRenderer(['No', 'Poli'], poliTable).printTable();
 
+  // Meminta pengguna untuk memilih poli dari daftar
   stdout.write("Pilih Poli [1-${data.poli.length}] : ");
   int poliIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
   if (poliIndex < 1 || poliIndex > data.poli.length) {
@@ -44,6 +52,7 @@ void pendaftaranDanPenjadwalan() {
   }
   String selectedPoli = data.poli[poliIndex - 1];
 
+  // Menampilkan daftar dokter di poli berdasarkan pilihan pengguna
   List<String> dokterList = data.dokterByPoli(selectedPoli);
   if (dokterList.isEmpty) {
     print("Tidak ada dokter di Poli $selectedPoli ❌");
@@ -57,6 +66,7 @@ void pendaftaranDanPenjadwalan() {
   );
   TableRenderer(['No', 'Dokter'], dokterTable).printTable();
 
+  // Meminta pengguna untuk memilih dokter dari poli yang dipilih
   stdout.write("Pilih Dokter [1-${dokterList.length}]: ");
   int dokterIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
   if (dokterIndex < 1 || dokterIndex > dokterList.length) {
@@ -65,11 +75,13 @@ void pendaftaranDanPenjadwalan() {
   }
   String selectedDokter = dokterList[dokterIndex - 1];
 
+  // Memeriksa ketersediaan jadwal dokter
   if (data.jadwal.isEmpty) {
     print("Tidak ada jadwal untuk $selectedDokter ❌");
     return;
   }
 
+  // Menampilkan jadwal dokter yang tersedia
   print("\n⏰ Daftar Jadwal :");
   final jadwalTampil = List.generate(data.jadwal.length, (i) {
     final j = data.jadwal[i];
@@ -77,6 +89,7 @@ void pendaftaranDanPenjadwalan() {
   });
   TableRenderer(['No', 'Tanggal', 'Jam'], jadwalTampil).printTable();
 
+  // Meminta pengguna untuk memilih jadwal
   stdout.write("Pilih Jadwal [1-${data.jadwal.length}] : ");
   int jadwalIndex = int.tryParse(stdin.readLineSync() ?? '') ?? -1;
   if (jadwalIndex < 1 || jadwalIndex > data.jadwal.length) {
@@ -85,6 +98,7 @@ void pendaftaranDanPenjadwalan() {
   }
   JadwalDokter selectedJadwal = data.jadwal[jadwalIndex - 1];
 
+  // Mendapatkan nomor antrean dan tanggal pendaftaran
   final now = DateTime.now();
   String nomorAntrean = _generateNomorAntrean();
   String formattedJadwal = formatJadwal({
@@ -93,6 +107,7 @@ void pendaftaranDanPenjadwalan() {
   });
   String tampilTglDaftar = formatTanggal(now);
 
+  // Menampilkan konfirmasi pendaftaran
   print("\n📋 Konfirmasi Pendaftaran :");
   List<String> headers = [
     'ID',
@@ -116,15 +131,18 @@ void pendaftaranDanPenjadwalan() {
   ];
   TableRenderer(headers, [values]).printTable();
 
+  // Meminta konfirmasi dari pengguna
   stdout.write("\nApakah semua data sudah benar? (y/n): ");
   String? konfirmasi = stdin.readLineSync();
   bool lanjut = konfirmasi?.toLowerCase() == 'y';
 
+  // Jika tidak di lanjutkan, membatalkan pendaftaran
   if (!lanjut) {
     print("Antrean tidak disimpan ⛔");
     return;
   }
 
+  // Menyimpan data pendaftaran ke file JSON
   List<Map<String, dynamic>> daftar = _loadPendaftaranData();
   daftar.add({
     'pasienId': pasien.id,
@@ -140,12 +158,13 @@ void pendaftaranDanPenjadwalan() {
     'tanggalDaftar': now.toIso8601String().split('T')[0],
   });
 
-  _savePendaftaranData(daftar);
-  antreanPasien.addLast(pasien);
+  _savePendaftaranData(daftar); // Menyimpan data ke file
+  antreanPasien.addLast(pasien); // Menambah pasien ke antrean
 
   print("\nAntrean berhasil disimpan untuk ${pasien.nama} dengan Nomor Antrean : $nomorAntrean ✅");
 }
 
+/// Fungsi untuk menampilkan daftar antrean pasien
 void lihatDaftarAntrean() {
   File file = File('data/pendaftaran_data.json');
   if (!file.existsSync()) {
@@ -160,6 +179,7 @@ void lihatDaftarAntrean() {
       return;
     }
 
+    // Menampilkan antrean pasien dalam bentuk tabel
     List<List<dynamic>> rows = rawData.map((entry) {
       final jadwalStr = formatJadwal(entry['jadwal']);
       final tglDaftar = formatTanggal(entry['tanggalDaftar']);
@@ -187,10 +207,11 @@ void lihatDaftarAntrean() {
       'Tanggal Daftar',
     ], rows).printTable();
   } catch (e) {
-    print("Gagal memuat antrean: $e ❌");
+    print("Gagal memuat antrean : $e ❌");
   }
 }
 
+/// Fungsi untuk menampilkan antrean aktif pasien
 void tampilkanAntreanAktif() {
   if (antreanPasien.isEmpty) {
     print("Antrean saat ini sedang kosong ❌");
@@ -205,12 +226,14 @@ void tampilkanAntreanAktif() {
   }
 }
 
+/// Fungsi untuk menghasilkan nomor antrean
 String _generateNomorAntrean() {
   List<Map<String, dynamic>> daftar = _loadPendaftaranData();
   int nomor = daftar.length + 1;
   return 'A${nomor.toString().padLeft(4, '0')}';
 }
 
+/// Fungsi untuk memuat data pendaftaran pasien dari file JSON
 List<Map<String, dynamic>> _loadPendaftaranData() {
   try {
     String json = File('data/pendaftaran_data.json').readAsStringSync();
@@ -221,6 +244,7 @@ List<Map<String, dynamic>> _loadPendaftaranData() {
   }
 }
 
+/// Fungsi untuk menyimpan data pendaftaran pasien ke file JSON
 void _savePendaftaranData(List<Map<String, dynamic>> daftar) {
   File('data/pendaftaran_data.json').writeAsStringSync(jsonEncode(daftar));
 }

@@ -1,37 +1,14 @@
-/// Library
-import 'dart:io' show stdin;
+import 'dart:io';
 
-// Utility
-import 'package:manajemen_rumah_sakit_cli_2/utils/clear_console.dart'
-    show clearConsole;
-import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart'
-    show readIntInRange;
-import 'package:manajemen_rumah_sakit_cli_2/utils/print_slow.dart'
-    show printSlow;
-
-// Modul
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart'
-    show cariPasien, lihatDaftarPasien, tambahDataPasien;
-import 'package:manajemen_rumah_sakit_cli_2/queue_and_schedule.dart'
-    show lihatDaftarAntrean, pendaftaranDanPenjadwalan;
-import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart'
-    show
-        inputHasilKonsultasi,
-        lihatRekamMedisPerDiagnosis,
-        tampilkanSemuaRekamMedis;
-import 'package:manajemen_rumah_sakit_cli_2/billing.dart'
-    show
-        laporanHarian,
-        laporanMingguan,
-        laporanPerPasien,
-        lihatSemuaTagihan,
-        menuLihatTagihan,
-        prosesPembayaran,
-        totalTagihan;
-import 'package:manajemen_rumah_sakit_cli_2/history_lookup.dart'
-    show menuRiwayatPasien;
-import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart'
-    show konfirmasiKeluar;
+import 'package:manajemen_rumah_sakit_cli_2/utils/clear_console.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/input_validations.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/print_slow.dart';
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
+import 'package:manajemen_rumah_sakit_cli_2/queue_and_schedule.dart';
+import 'package:manajemen_rumah_sakit_cli_2/consultation_result.dart';
+import 'package:manajemen_rumah_sakit_cli_2/billing.dart';
+import 'package:manajemen_rumah_sakit_cli_2/history_lookup.dart';
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
 
 void main() {
   while (true) {
@@ -54,18 +31,14 @@ void main() {
     print("  6. Input Hasil Konsultasi");
     print("  7. Lihat Semua Rekam Medis (Urut Nama)");
     print("  8. Lihat Rekam Medis per Diagnosis");
-    print(
-      "  9. Lihat Riwayat Pasien (Gabungan)",
-    ); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
+    print("  9. Lihat Riwayat Pasien (Gabungan)"); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
 
     // 💳 MANAJEMEN TAGIHAN
     print("\n💳 MANAJEMEN TAGIHAN");
     print(" 10. Tambah Tagihan");
     print(" 11. Lihat Semua Tagihan (Urut Nama)");
     print(" 12. Proses Pembayaran");
-    print(
-      " 13. Lihat Laporan Tagihan",
-    ); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
+    print(" 13. Lihat Laporan Tagihan"); // <- Disatukan dan diganti dengan label untuk pusat kendali tagihan
 
     // 📊 LAPORAN PEMBAYARAN
     print("\n📊 LAPORAN PEMBAYARAN");

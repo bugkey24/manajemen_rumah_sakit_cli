@@ -1,11 +1,19 @@
-import 'dart:io';
-import 'dart:convert';
-import 'package:intl/intl.dart';
+// Library
+import 'dart:io' show File, stdin, stdout;
+import 'dart:convert' show jsonDecode, jsonEncode;
+import 'package:intl/intl.dart' show DateFormat;
 
-import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart';
-import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart';
+// Utility
+import 'package:manajemen_rumah_sakit_cli_2/utils/table_renderer.dart'
+    show TableRenderer;
+import 'package:manajemen_rumah_sakit_cli_2/utils/confirmation_helper.dart'
+    show cariDanKonfirmasiPasien, konfirmasiRekap;
 
+// Modul
+import 'package:manajemen_rumah_sakit_cli_2/patient_management.dart'
+    show Pasien, loadPasienData;
+
+// Kelas untuk menyimpan dan mengelola data Rekam Medis
 class RekamMedis {
   String pasienId;
   String nik;
@@ -16,6 +24,7 @@ class RekamMedis {
   String dokter;
   DateTime tanggal;
 
+  // Konstruktor untuk inisialisasi objek RekamMedis
   RekamMedis({
     required this.pasienId,
     required this.nik,
@@ -27,6 +36,7 @@ class RekamMedis {
     required this.tanggal,
   });
 
+  // Fungsi untuk mengonversi objek RekamMedis menjadi format JSON
   Map<String, dynamic> toJson() => {
     'pasienId': pasienId,
     'nik': nik,
@@ -38,6 +48,7 @@ class RekamMedis {
     'tanggal': tanggal.toIso8601String(),
   };
 
+  // Fungsi untuk mengonversi JSON menjadi objek RekamMedis
   static RekamMedis fromJson(Map<String, dynamic> json) => RekamMedis(
     pasienId: json['pasienId'],
     nik: json['nik'],
@@ -50,17 +61,18 @@ class RekamMedis {
   );
 }
 
+// Fungsi untuk memasukkan hasil konsultasi pasien
 void inputHasilKonsultasi() {
   List<Pasien> pasienList = loadPasienData();
 
-  stdout.write("🪪 Masukkan NIK atau ID Pasien : ");
+  stdout.write("🪪  Masukkan NIK atau ID Pasien : ");
   String? input = stdin.readLineSync();
   if (input == null || input.trim().isEmpty) return;
 
   Pasien? pasien = cariDanKonfirmasiPasien(input.trim(), pasienList);
   if (pasien == null) return;
 
-  // Cari pendaftaran terakhir pasien
+  // Mencari pendaftaran terakhir pasien
   final pendaftaran = _cariPendaftaranTerakhir(pasien);
   if (pendaftaran == null) {
     print(
@@ -69,11 +81,12 @@ void inputHasilKonsultasi() {
     return;
   }
 
-  String dokter = pendaftaran['dokter'] ?? '-';
+  String dokter = pendaftaran['dokter'] ?? '-'; // Mendapatkan nama dokter
   final jadwal = pendaftaran['jadwal'];
   DateTime tanggalKonsultasi =
       DateTime.tryParse(jadwal?['tanggal'] ?? '') ?? DateTime.now();
 
+  // Meminta input hasil konsultasi
   stdout.write("Masukkan Diagnosis : ");
   String? diagnosis = stdin.readLineSync();
   stdout.write("Masukkan Resep Obat : ");
@@ -81,11 +94,13 @@ void inputHasilKonsultasi() {
   stdout.write("Masukkan Tindakan Medis : ");
   String? tindakan = stdin.readLineSync();
 
+  // Validasi input
   if ([diagnosis, resep, tindakan].any((e) => e == null || e.trim().isEmpty)) {
     print("Data konsultasi tidak valid. Harap isi semua informasi ⚠️");
     return;
   }
 
+  // Menyusun konfirmasi data hasil konsultasi
   bool lanjut = konfirmasiRekap({
     'Nama Pasien': pasien.nama,
     'Dokter Pemeriksa': dokter,
@@ -100,6 +115,7 @@ void inputHasilKonsultasi() {
     return;
   }
 
+  // Membuat objek RekamMedis dan menyimpannya
   RekamMedis rekamMedis = RekamMedis(
     pasienId: pasien.id,
     nik: pasien.nik,
@@ -111,10 +127,14 @@ void inputHasilKonsultasi() {
     tanggal: tanggalKonsultasi,
   );
 
+  // Menyimpan rekam medis ke file JSON
   _saveRekamMedisData(rekamMedis);
-  print("Rekam medis berhasil disimpan untuk pasien ${pasien.nama} dengan nik ${pasien.nik} ✅");
+  print(
+    "Rekam medis berhasil disimpan untuk pasien ${pasien.nama} dengan nik ${pasien.nik} ✅",
+  );
 }
 
+// Fungsi untuk mencari pendaftaran terakhir pasien
 Map<String, dynamic>? _cariPendaftaranTerakhir(Pasien pasien) {
   final file = File('data/pendaftaran_data.json');
   if (!file.existsSync()) return null;
@@ -128,18 +148,20 @@ Map<String, dynamic>? _cariPendaftaranTerakhir(Pasien pasien) {
 
     if (filtered.isEmpty) return null;
 
+    // Mengurutkan pendaftaran berdasarkan tanggal terbaru
     filtered.sort(
       (a, b) => (b['tanggalDaftar'] ?? '').toString().compareTo(
         (a['tanggalDaftar'] ?? '').toString(),
       ),
     );
 
-    return filtered.first;
+    return filtered.first; // Mengembalikan pendaftaran terbaru
   } catch (_) {
     return null;
   }
 }
 
+// Fungsi untuk menampilkan semua rekam medis yang tersimpan
 void tampilkanSemuaRekamMedis() {
   List<RekamMedis> daftar = loadRekamMedisData();
   if (daftar.isEmpty) {
@@ -147,7 +169,9 @@ void tampilkanSemuaRekamMedis() {
     return;
   }
 
-  daftar.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+  daftar.sort(
+    (a, b) => b.tanggal.compareTo(a.tanggal),
+  ); // Mengurutkan berdasarkan tanggal terbaru
   final formatter = DateFormat('dd-MM-yyyy');
 
   List<List<dynamic>> rows = daftar.map((rekam) {
@@ -161,6 +185,7 @@ void tampilkanSemuaRekamMedis() {
     ];
   }).toList();
 
+  // Menampilkan tabel rekam medis
   TableRenderer([
     'Tanggal',
     'Nama',
@@ -171,6 +196,7 @@ void tampilkanSemuaRekamMedis() {
   ], rows).printTable();
 }
 
+// Fungsi untuk menampilkan rekam medis per diagnosis
 void lihatRekamMedisPerDiagnosis() {
   List<RekamMedis> daftar = loadRekamMedisData();
   if (daftar.isEmpty) {
@@ -178,6 +204,7 @@ void lihatRekamMedisPerDiagnosis() {
     return;
   }
 
+  // Mengelompokkan rekam medis berdasarkan diagnosis yang sama
   Map<String, List<RekamMedis>> grup = {};
   for (var rekam in daftar) {
     grup.putIfAbsent(rekam.diagnosis, () => []).add(rekam);
@@ -185,6 +212,7 @@ void lihatRekamMedisPerDiagnosis() {
 
   final formatter = DateFormat('dd-MM-yyyy');
 
+  // Menampilkan rekam medis berdasarkan diagnosis yang tersimpan
   for (var entry in grup.entries) {
     print("\n🧾 Diagnosis : ${entry.key}");
     List<List<dynamic>> rows = entry.value.map((rekam) {
@@ -197,6 +225,7 @@ void lihatRekamMedisPerDiagnosis() {
       ];
     }).toList();
 
+    // Menampilkan tabel rekam medis per diagnosis yang tersimpan
     TableRenderer([
       'Tanggal',
       'Nama',
@@ -207,6 +236,7 @@ void lihatRekamMedisPerDiagnosis() {
   }
 }
 
+// Fungsi untuk menyimpan data rekam medis ke file JSON
 void _saveRekamMedisData(RekamMedis rekamMedis) {
   List<RekamMedis> existing = loadRekamMedisData();
   existing.add(rekamMedis);
@@ -215,6 +245,7 @@ void _saveRekamMedisData(RekamMedis rekamMedis) {
   File('data/rekam_medis_data.json').writeAsStringSync(jsonData);
 }
 
+// Fungsi untuk memuat data rekam medis dari file JSON
 List<RekamMedis> loadRekamMedisData() {
   File file = File('data/rekam_medis_data.json');
   if (!file.existsSync()) {
